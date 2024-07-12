@@ -1,0 +1,17 @@
+components:
+  schemas:
+    400Response:
+      x-fern-type-name: Response400
+    403Response:
+      x-fern-type-name: Response403
+    404Response:
+      x-fern-type-name: Response404
+    503Response:
+      x-fern-type-name: Response503
+    524Response:
+      x-fern-type-name: Response524
+servers:
+- url: "https://staging.crossmint.com/api"
+  x-fern-server-name: Staging
+- url: "https://www.crossmint.com/api"
+  x-fern-server-name: Production

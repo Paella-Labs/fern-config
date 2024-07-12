@@ -1,0 +1,22 @@
+api:
+  path: ./openapi/openapi.yaml
+  overrides: ./openapi/openapi-overrides.yml
+groups:
+  ts-sdk:
+    generators:
+      - name: fernapi/fern-typescript-node-sdk
+        version: 0.27.0
+        output:
+          location: npm
+          package-name: "crossmint"
+          # uncomment to publish to npm
+          # token: ${NPM_TOKEN}
+        github:
+          repository: fern-demo/crossmint-typescript-sdk
+        smart-casing: true
+        config: 
+          namespaceExport: Crossmint
+          allowCustomFetcher: true
+          skipResponseValidation: true
+          includeApiReference: true
+          
