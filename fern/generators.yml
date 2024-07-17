@@ -5,7 +5,7 @@ groups:
   ts-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.27.0
+        version: 0.31.0
         output:
           location: npm
           package-name: "crossmint"
@@ -19,4 +19,17 @@ groups:
           allowCustomFetcher: true
           skipResponseValidation: true
           includeApiReference: true
-          
+  python-sdk:
+    generators:
+      - name: fernapi/fern-python-sdk
+        version: 2.15.4
+        output:
+          location: pypi
+          package-name: "crossmint"
+          # uncomment to publish to npm
+          # token: ${NPM_TOKEN}
+        github:
+          repository: fern-demo/crossmint-python-sdk
+        smart-casing: true
+        config: 
+          client_class_name: Crossmint                  

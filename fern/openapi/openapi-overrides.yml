@@ -1,17 +1,53 @@
+paths:
+  /2022-06-09/orders:
+    post:
+      x-fern-sdk-group-name:
+        - checkout
+      x-fern-sdk-method-name: create-order
+  /2022-06-09/orders/{orderId}:
+    get:
+      x-fern-sdk-group-name:
+        - checkout
+      x-fern-sdk-method-name: get-order
+    patch:
+      x-fern-sdk-group-name:
+        - checkout
+      x-fern-sdk-method-name: edit-order
 components:
   schemas:
     400Response:
-      x-fern-type-name: Response400
+      x-fern-type-name: BadRequestResponse
     403Response:
-      x-fern-type-name: Response403
+      x-fern-type-name: UnauthorizedResponse
     404Response:
-      x-fern-type-name: Response404
+      x-fern-type-name: NotFoundResponse
     503Response:
-      x-fern-type-name: Response503
+      x-fern-type-name: ServiceUnavailabileResponse
     524Response:
-      x-fern-type-name: Response524
-servers:
-- url: "https://staging.crossmint.com/api"
-  x-fern-server-name: Staging
-- url: "https://www.crossmint.com/api"
-  x-fern-server-name: Production
+      x-fern-type-name: TimeoutResponse
+    LineItems: 
+      oneOf: 
+        - x-fern-type-name: SingleLineItem
+        - x-fern-type-name: MultipleLineItems
+    Recipient: 
+      oneOf: 
+        - x-fern-type-name: RecipientEmail
+        - x-fern-type-name: RecipientWallet
+    Payment: 
+      oneOf: 
+        - x-fern-type-name: EvmPayment
+          properties: 
+            method: 
+              x-fern-type-name: EvmPaymentMethods
+            currency:
+              x-fern-type-name: EvmPaymentCurrency
+        - x-fern-type-name: SolanaPayment
+          properties: 
+            method: 
+              x-fern-type-name: SolanaPaymentMethods
+            currency:
+              x-fern-type-name: SolanaPaymentCurrency
+        - x-fern-type-name: FiatPayment
+          properties: 
+            currency:
+              x-fern-type-name: FiatPaymentCurrency    
