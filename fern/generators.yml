@@ -9,8 +9,7 @@ groups:
         output:
           location: npm
           package-name: "crossmint"
-          # uncomment to publish to npm
-          # token: ${NPM_TOKEN}
+          token: ${NPM_TOKEN}
         github:
           repository: fern-demo/crossmint-typescript-sdk
           mode: pull-request
