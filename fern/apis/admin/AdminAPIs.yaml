@@ -1,0 +1,153 @@
+---
+openapi: 3.0.1
+servers:
+    - url: "https://staging.crossmint.com/api"
+      description: "Staging environment (testnets)"
+    - url: "https://www.crossmint.com/api"
+      description: "Production environment (mainnets)"
+security:
+    - apiKey: []
+info:
+    description: N/A
+    version: 1.0.0
+    title: Admin API
+    contact:
+        name: Crossmint Admin APIs
+        url: https://www.crossmint.com
+        email: support@crossmint.io
+paths:
+    "/v1-alpha1/projects/{projectId}/usage":
+        get:
+            responses:
+                "200":
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                "$ref": "#/components/schemas/UsageResponse"
+                "400":
+                    description: Invalid arguments, please make sure you're following the api
+                        specification.
+                    content:
+                        application/json:
+                            schema:
+                                "$ref": "#/components/schemas/BatchError"
+                "403":
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                "$ref": "#/components/schemas/Error"
+                "503":
+                    description: Please try again in a few minutes. If the issue still persists,
+                        please contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                "$ref": "#/components/schemas/Error"
+            summary: Get Usage
+            description: |
+                Get usage data for a project.
+
+                **API scope required** `projects:usage.read`
+            operationId: get-usage
+            parameters:
+                - name: projectId
+                  in: path
+                  description: You can find your project ID in the Crossmint
+                      console.
+                  required: true
+                  example: 94d09d19-25b4-45f7-8103-b48b7a2ae3cc
+                  schema:
+                      type: string
+                      default: default
+                - name: dimension
+                  in: query
+                  description: The `dimension` you want to query, for example `monthly_active_wallets`.
+                  required: true
+                  schema:
+                      type: string
+                      description: The type of usage data to return.
+                      default: monthly_active_wallets
+                      enum:
+                          - monthly_active_wallets
+                - name: startDate
+                  in: query
+                  description: The `startDate` you want to query in YYYY-MM format, for example `2023-11` for November 2023.
+                  required: true
+                  schema:
+                      type: string
+                      description: The `startDate` of usage data to return.
+                - name: endDate
+                  in: query
+                  description: The `endDate` you want to query in YYYY-MM format, for example `2023-12` for December 2023.
+                  schema:
+                      type: string
+                      description: The `endDate` of usage data to return.
+components:
+    securitySchemes:
+        apiKey:
+            type: apiKey
+            in: header
+            name: X-API-KEY
+
+    schemas:
+        UsageResponse:
+            type: object
+            properties:
+                data:
+                    type: object
+                    properties:
+                        dimension:
+                            type: string
+                            description: The type of usage data returned.
+                        usage:
+                            type: object
+                            description: The usage data for the specified dimension.
+                            properties:
+                                month:
+                                    type: string
+                                    description: YYYY-MM format indicating the month
+                                activeWallets:
+                                    type: integer
+                                    description: The number of active wallets for the given month
+
+        Error:
+            type: object
+            properties:
+                error:
+                    type: string
+                message:
+                    type: string
+        ValidationError:
+            type: object
+            properties:
+                index:
+                    type: integer
+                    description: The index of the NFT that caused the validation error.
+                id:
+                    type: string
+                    description: The idempotent identifier for the NFT, if available.
+                message:
+                    type: string
+                    description: The validation error message.
+            required:
+                - message
+
+        BatchError:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    description: Flag indicating whether an error occurred. Always `true` for error responses.
+                message:
+                    type: string
+                    description: A general error message.
+                validationErrors:
+                    type: array
+                    items:
+                        "$ref": "#/components/schemas/ValidationError"
+                    description: A list of specific validation errors.
+            required:
+                - error
+                - message

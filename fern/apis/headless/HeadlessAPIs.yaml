@@ -63,31 +63,31 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/400Response"
+                                $ref: "#/components/schemas/Error400Response"
                 403:
                     description: Forbidden error, please ensure the credentials are correct.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/403Response"
+                                $ref: "#/components/schemas/Error403Response"
                 404:
                     description: Not found error.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/404Response"
+                                $ref: "#/components/schemas/Error404Response"
                 503:
                     description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/503Response"
+                                $ref: "#/components/schemas/Error503Response"
                 524:
                     description: A timeout occurred.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/524Response"
+                                $ref: "#/components/schemas/Error524Response"
 
     /2022-06-09/orders/{orderId}:
         # GET ORDER
@@ -114,31 +114,31 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/400Response"
+                                $ref: "#/components/schemas/Error400Response"
                 403:
                     description: Forbidden error, please ensure the credentials are correct.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/403Response"
+                                $ref: "#/components/schemas/Error403Response"
                 404:
                     description: Not found error.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/404Response"
+                                $ref: "#/components/schemas/Error404Response"
                 503:
                     description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/503Response"
+                                $ref: "#/components/schemas/Error503Response"
                 524:
                     description: A timeout occurred.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/524Response"
+                                $ref: "#/components/schemas/Error524Response"
 
         # EDIT ORDER
         patch:
@@ -172,37 +172,41 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/400Response"
+                                $ref: "#/components/schemas/Error400Response"
                 403:
                     description: Forbidden error, please ensure the credentials are correct.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/403Response"
+                                $ref: "#/components/schemas/Error403Response"
                 404:
                     description: Not found error.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/404Response"
+                                $ref: "#/components/schemas/Error404Response"
                 503:
                     description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/503Response"
+                                $ref: "#/components/schemas/Error503Response"
                 524:
                     description: A timeout occurred.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/524Response"
+                                $ref: "#/components/schemas/Error524Response"
 
 components:
     securitySchemes:
         apiKey:
             type: apiKey
             name: X-API-KEY
+            in: header
+        orderClientSecret:
+            type: apiKey
+            name: Authorization
             in: header
 
     parameters:
@@ -583,7 +587,7 @@ components:
                                     type: string
                                     example: "0x02f90....."
 
-        400Response:
+        Error400Response:
             type: object
             properties:
                 error:
@@ -593,7 +597,7 @@ components:
                     type: string
                     example: "Invalid arguments or empty parameter <missing parameter>."
 
-        403Response:
+        Error403Response:
             type: object
             properties:
                 error:
@@ -603,7 +607,7 @@ components:
                     type: string
                     example: Malformed API key. / API key provided doesn't have required scopes.
 
-        404Response:
+        Error404Response:
             type: object
             properties:
                 error:
@@ -613,7 +617,7 @@ components:
                     type: string
                     example: "Not found"
 
-        503Response:
+        Error503Response:
             type: object
             properties:
                 error:
@@ -623,7 +627,8 @@ components:
                     type: string
                     example: "Please try again in a few minutes. If the issue still persists, contact Crossmint support."
 
-        524Response:
+        Error524Response:
+            x-fern-type-name: TimeoutResponse
             type: object
             properties:
                 error:

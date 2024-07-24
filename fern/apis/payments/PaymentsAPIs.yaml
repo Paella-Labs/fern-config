@@ -1,0 +1,605 @@
+openapi: 3.0.1
+servers:
+    - url: "https://staging.crossmint.com/api"
+      description: "Staging environment (testnets)"
+    - url: "https://www.crossmint.com/api"
+      description: "Production environment (mainnets)"
+info:
+    description: |
+        N/A
+    version: 1.0.0
+    title: NFT Checkout
+    contact:
+        name: Crossmint NFT Checkout APIs
+        url: "https://www.crossmint.com"
+        email: support@crossmint.io
+tags:
+    - name: metadata
+      description: Find out about the data sets
+    - name: search
+      description: Search a data set
+paths:
+    /v1-alpha1/collections: # Register collection
+        post:
+            responses:
+                "200":
+                    description: "Success."
+                "400":
+                    description: "Bad request."
+            tags:
+                - Registration
+            summary: Register NFT Collection
+            description: |
+                Register your NFT collection with Crossmint
+
+                **This API is subject to change as it is currently in its alpha form.**
+            operationId: register-nft-collection
+            security:
+                - apiKey: []
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                chain:
+                                    type: string
+                                    description: "Crypto chain your NFT is on"
+                                    enum:
+                                        - solana
+                                        - ethereum
+                                        - polygon
+                                        - bsc
+                                    default: solana
+                                contractType:
+                                    type: string
+                                    description: "The type of your contract."
+                                    enum:
+                                        - candy-machine
+                                        - erc-721
+                                        - erc-1155
+                                        - thirdweb-drop
+                                    default: erc-721
+                                args:
+                                    oneOf:
+                                        - title: "Candy Machine"
+                                          type: object
+                                          required:
+                                              - candyMachineId
+                                          properties:
+                                              candyMachineId:
+                                                  type: string
+                                                  description: "Candy machine ID"
+                                        - title: "EVM"
+                                          type: object
+                                          required:
+                                              - contractAddress
+                                              - abi
+                                              - mintFunctionName
+                                              - toParamName
+                                              - contractType
+                                          properties:
+                                              contractAddress:
+                                                  type: string
+                                              abi:
+                                                  type: string
+                                                  items:
+                                                      type: object
+                                              mintFunctionName:
+                                                  type: string
+                                                  example: "crossmint(address,uint256)"
+                                              toParamName:
+                                                  type: string
+                                                  description: "The name of the `to` parameter in the mint function"
+                                              quantityParamName:
+                                                  type: string
+                                metadata:
+                                    type: object
+                                    required:
+                                        - title
+                                        - description
+                                        - imageUrl
+                                    properties:
+                                        title:
+                                            type: string
+                                            description: "Collection title"
+                                        description:
+                                            type: string
+                                            description: "Description of your collection"
+                                        imageUrl:
+                                            type: string
+                                            description: "Image url"
+                                        social:
+                                            type: object
+                                            properties:
+                                                twitter:
+                                                    type: string
+                                                    description: "A link to your twitter page"
+                                                discord:
+                                                    type: string
+                                                    description: "An invite link to your discord server"
+                                ownership:
+                                    type: string
+                                    description: "Ownership of the collection"
+                                    enum:
+                                        - external
+                                        - self
+                                category:
+                                    type: string
+                                    description: "Verification category"
+                                    enum:
+                                        - loyalty
+                                        - art
+                                        - music
+                                        - gaming
+                                        - ticketing
+                                        - charity
+                                        - other
+                                scopes:
+                                    type: array
+                                    items:
+                                        type: string
+                                        enum:
+                                            - payments:credit-card
+                                            - payments:cross-chain
+                            required:
+                                - chain
+                                - contractType
+                                - args
+                                - metadata
+                                - ownership
+                                - category
+                                - scopes
+        put:
+            responses:
+                "200":
+                    description: "Success."
+                "400":
+                    description: "Bad request."
+            tags:
+                - Registration
+            summary: Update Your Collection
+            description: |
+                Update your collection information registered on Crossmint
+
+                **This API is subject to change as it is currently in its alpha form.**
+            operationId: update-nft-collection
+            security:
+                - apiKey: []
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                clientId:
+                                    type: string
+                                metadata:
+                                    type: object
+                                    required:
+                                        - title
+                                        - imageUrl
+                                    properties:
+                                        title:
+                                            type: string
+                                        imageUrl:
+                                            type: string
+                                        social:
+                                            type: object
+                                            properties:
+                                                twitter:
+                                                    type: string
+                                                    description: "A link to your twitter page"
+                                                discord:
+                                                    type: string
+                                                    description: "An invite link to your discord server"
+                            required:
+                                - clientId
+                                - metadata
+    /v1-alpha1/checkout/mint: # Checkout a mint
+        post:
+            responses:
+                200:
+                    description: Checkout url generated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CheckoutMintSuccess"
+                400:
+                    description: |
+                        ### Bad request.  
+                        #### This may be for a number of Crossmint compatibility reasons:  
+                          • One or more of the provided parameters is missing, incorrect, or in an invalid format  
+                          • The `clientId` does not exist  
+                          • Minting is unavailable because the collection is disabled  
+                          • Minting is unavailable because the developer and/or project has not verified their identity  
+                          • Attempting to mint directly into a wallet for an ERC1155 contract. Currently, this is not supported  
+                          • The collection is configured improperly for the given contract. An example of this may be that parameters to the mint function in your contract are not specified properly  
+                            
+                        #### Or any number of reasons with respect to the minting contract, not limited to:  
+                          • The user/wallet is not whitelisted  
+                          • The mint is sold out  
+                          • The mint has not yet gone live  
+                          • The mint period has ended  
+                          • The mint limit has been reached for the given user/wallet
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                401:
+                    description: |
+                        Unauthorized. This may mean either:  
+                          • The API key may not exist, or does not have the proper scopes to perform this action (`nfts.checkout`), or  
+                          • The `clientId` for the collection is not registered under the same project as the API key.
+            tags:
+                - Checkout
+            summary: Generate Checkout Link
+            description: "**API scope required**: `nfts.checkout`
+                Begin the checkout process for a mint
+
+                **This API is subject to change as it is currently in its alpha form.**"
+            operationId: checkout-mint
+            security:
+                - apiKey: []
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                clientId:
+                                    type: string
+                                    description: "The clientId of a previously created collection"
+                                userId:
+                                    type: string
+                                    description: "The userId of a previously created wallet"
+                                emailTo:
+                                    type: string
+                                    description: "Target email"
+                                mintTo:
+                                    type: string
+                                    description: "Crypto address to mint the NFT to"
+                                paymentMethod:
+                                    type: string
+                                    description: "Payment method"
+                                listingId:
+                                    type: string
+                                collection:
+                                    type: object
+                                    properties:
+                                        title:
+                                            type: string
+                                            description: "Collection title"
+                                        description:
+                                            type: string
+                                            description: "Collection description"
+                                        photo:
+                                            type: string
+                                            description: "Photo url"
+                                    required:
+                                        - title
+                                        - description
+                                        - photo
+                                redirect:
+                                    type: object
+                                    properties:
+                                        continue:
+                                            type: string
+                                        cancel:
+                                            type: string
+                                mintConfig:
+                                    type: object
+                                    properties:
+                                        totalPrice:
+                                            type: string
+                                whPassThroughArgs:
+                                    type: string
+                                    description: "Any arguments to included in the webhook status updates"
+                            required:
+                                - clientId
+                                - userId
+    /v1-alpha1/quote: # get quote
+        get:
+            responses:
+                "200":
+                    description: "Success."
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/QuoteResponse"
+                "400":
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorMsg"
+            tags:
+                - Quote Price
+            summary: Quote Transaction with Fees
+            description: |
+                Get the price of a transaction hosted through Crossmint, inclusive of all fees.
+
+                **This API is subject to change as it is currently in its alpha form.**
+            operationId: quote
+            security:
+                - clientId: []
+            parameters:
+                - name: nativePrice
+                  in: query
+                  description: |
+                      Price in specified chain currency to quote.
+                      The chain is derived from the chain your collection is on.
+                      If your chain is on the Solana network, the parameter would be the SOL amount, not Lamports.
+                  required: true
+                  example: 1
+                  schema:
+                      type: string
+                - name: quoteCurrency
+                  in: query
+                  description: "Price in specified currency to quote"
+                  required: true
+                  example: usd
+                  schema:
+                      type: string
+                      default: "usd"
+                      enum:
+                          - usd
+                          - eur
+                          - gbp
+                          - aud
+                          - sgd
+                          - hkd
+                          - krw
+                          - inr
+                          - vnd
+                          - jpy
+components:
+    securitySchemes:
+        apiKey:
+            type: apiKey
+            name: X-API-KEY
+            in: header
+        clientId:
+            type: apiKey
+            in: header
+            name: X-CLIENT-ID
+    schemas:
+        QuoteResponse:
+            type: object
+            properties:
+                currency:
+                    type: string
+                    example: "usd"
+                price:
+                    type: number
+                    example: 1.23
+        Checkout:
+            required:
+                - clientId
+            type: object
+            properties:
+                clientId:
+                    type: string
+                    description: "Your Crossmint Developer Client ID, found in the developer console: https://crossmint.com/console/collections"
+                    example: 085f0f5a-9948-11ec-b909-0242ac120002
+                collection:
+                    $ref: "#/components/schemas/Collection"
+                redirect:
+                    $ref: "#/components/schemas/Redirect"
+                mintConfig:
+                    $ref: "#/components/schemas/MintConfig"
+                emailTo:
+                    type: string
+                    description: The email address for mint confirmation
+                    example: austin+test@paella.dev
+                mintTo:
+                    type: string
+                    description: A wallet address to mint the NFT to
+                    example: YKQC3F2FUMexJUaje2suibPNhen2e9Pix1C2f9q7BHY
+                paymentMethod:
+                    type: string
+                    description: The payment method, either `"fiat"` or `"ETH"`
+                    default: fiat
+                whPassThroughArgs:
+                    type: object
+                    description: Any arguments to included in the webhook status updates
+                    example:
+                        referralCode: "123"
+                listingId:
+                    type: string
+                    description: The listing ID in a marketplace. Most contracts will not use this
+        Collection:
+            type: object
+            description: Information about your collection, to be displayed on the checkout page.
+            properties:
+                title:
+                    type: string
+                    description: The title of your collection
+                    example: A great collection
+                description:
+                    type: string
+                    description: A description for your collection
+                    example: This is a fantastic collection of NFTs
+                photo:
+                    type: string
+                    description: Full URL to an image for your collection.
+                    example: https://i.picsum.photos/id/542/200/300.jpg?hmac=qD8M4ejDPlEc69pGT21BzB7CDiWOcElb_Ke7V8POjm8
+        MintConfig:
+            type: object
+            description: Arguments sent to your smart contract
+            properties:
+                totalPrice:
+                    type: string
+                    example: "0.08"
+                "...":
+                    type: object
+                    description: Any custom arguments to your minting function should be configured here.
+        MintStatus:
+            type: object
+            properties:
+                status:
+                    type: string
+                    description: The latest status of the mint
+                    example: success
+                    enum:
+                        - minting
+                        - success
+                        - error
+                mintAddress:
+                    type: string
+                    description: The address of the mint
+                    example: B1nQxDxmQTfRbXK4Cv1HtEmXKNqTXHEDiD251p9RCR7Q
+                walletAddress:
+                    type: string
+                    description: The wallet address the NFT is minted to
+                    example: YKQC3F2FUMexJUaje2suibPNhen2e9Pix1C2f9q7BHY
+                passThroughArgs:
+                    type: string
+                    description: The arguments you sent via the `whPassThroughArgs` from `/checkout/mint`
+                    example: '{"referralCode":"123"}'
+        NFT:
+            type: object
+            properties:
+                name:
+                    type: string
+                symbol:
+                    type: string
+                description:
+                    type: string
+                image:
+                    type: string
+                    description: A url that represents the image for the NFT
+                collection:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        family:
+                            type: string
+                attributes:
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            traitType:
+                                type: string
+                            value:
+                                anyOf:
+                                    - type: string
+                                    - type: number
+                                    - type: object
+                                    - type: array
+                                      items: {}
+                properties:
+                    type: object
+                    properties:
+                        category:
+                            type: string
+                        creators:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    address:
+                                        type: string
+                                    share:
+                                        type: number
+                        files:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    uri:
+                                        type: string
+                                    type:
+                                        type: string
+                mintHash:
+                    type: string
+                seller_fee_basis_points:
+                    type: number
+        Redirect:
+            type: object
+            description: The URLs to redirect the user to upon comletion or cancellation of the checkout page.
+            properties:
+                continue:
+                    type: string
+                    description: The URL to redirect the customer to when the customer's payment information is accepted.
+                cancel:
+                    type: string
+                    description: The URL to redirect the customer cancels the payment.
+        Transfer:
+            type: object
+            required: [chain, fromAddress, toAddress, tokenMintAddress]
+            properties:
+                chain:
+                    type: string
+                    enum:
+                        - solana
+                        - ethereum
+                        - polygon
+                        - bsc
+                    default: ethereum
+                tokenId:
+                    type: string
+                    description: The NFT token ID
+                fromAddress:
+                    type: string
+                    description: The wallet address for the current owner
+                toAddress:
+                    type: string
+                    description: The wallet address to send the NFT to
+                tokenMintAddress:
+                    type: string
+                    description: The NFT token mint address
+        Wallet:
+            type: object
+            properties:
+                chain:
+                    type: string
+                    example: solana
+                    enum:
+                        - solana
+                        - ethereum
+                        - polygon
+                        - bsc
+                    default: solana
+                publicKey:
+                    type: string
+                    example: C9vzqFSxKVasf55GdZCAFKhKW9zckzx6ekhhsQTretTa
+        CheckoutMintSuccess:
+            type: object
+            properties:
+                checkoutURL:
+                    type: string
+                    description: A URL to send the user to in order to capture payment and start the minting process
+        TransferPendingVerification:
+            type: object
+            properties:
+                personaUrl:
+                    type: string
+                    description: A URL to send the user to in order to perform a persona verification. If the user has failed the OTP challenge 3 times, this will be the only option.
+        Error:
+            type: object
+            properties:
+                error:
+                    type: string
+        ErrorMsg:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                message:
+                    type: string
+    requestBodies:
+        Checkout:
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Checkout"
+            required: true
+        Transfer:
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Transfer"
+            required: true

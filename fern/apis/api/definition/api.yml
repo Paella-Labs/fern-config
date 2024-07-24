@@ -1,0 +1,10 @@
+name: api
+display-name: Crossmint
+
+error-discrimination:
+  strategy: status-code
+
+default-environment: Production
+environments:
+  Production: "https://www.crossmint.com/api"
+  Staging: "https://staging.crossmint.com/api"

@@ -1,0 +1,746 @@
+openapi: 3.0.1
+servers:
+    - url: "https://staging.crossmint.com/api"
+      description: "Staging environment (testnets)"
+    - url: "https://www.crossmint.com/api"
+      description: "Production environment (mainnets)"
+security:
+    - apiKey: []
+info:
+    description: >-
+        N/A
+    version: 1.0.0
+    title: Wallets
+    contact:
+        name: Crossmint Wallets APIs
+        url: https://www.crossmint.com
+        email: support@crossmint.io
+tags:
+    - name: metadata
+      description: Find out about the data sets
+    - name: search
+      description: Search a data set
+paths:
+    /v1-alpha1/wallets:
+        post:
+            responses:
+                200:
+                    description: Wallet already exists
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    chain:
+                                        type: string
+                                        example: ethereum
+                                        description: The blockchain the wallet is on
+                                    publicKey:
+                                        type: string
+                                        example: "0xB364346FDb52e42CcC186b3BA3730cb4A87bF5B0"
+                                        description: "The address of the created wallet"
+                201:
+                    description: Wallet created
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    chain:
+                                        type: string
+                                        example: ethereum
+                                    publicKey:
+                                        type: string
+                                        example: "0xB364346FDb52e42CcC186b3BA3730cb4A87bF5B0"
+                400:
+                    description: Bad request. Most likely the parameters `userId` and `chain` were not included, or were not provided in the proper format
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                401:
+                    description: |
+                        Unauthorized. The API key may not exist, or does not have the proper scopes to perform this action (`wallets.create`)
+            tags:
+                - Wallet
+            summary: Create Wallet
+            description: |
+                Create a new Crossmint custodial wallet for a user
+
+                **API scope required**: `wallets.create`
+            operationId: create-wallet
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            oneOf:
+                                - title: email
+                                  type: object
+                                  properties:
+                                      email:
+                                          type: string
+                                          description: Provide an email for this wallet to be associated to
+                                      chain:
+                                          $ref: "#/components/schemas/AllChains"
+                                  required:
+                                      - email
+                                      - chain
+                                - title: userId
+                                  type: object
+                                  properties:
+                                      userId:
+                                          type: string
+                                          description: Provide an arbitrary ID for this wallet to be associated to
+                                      chain:
+                                          $ref: "#/components/schemas/AllChains"
+                                  required:
+                                      - userId
+                                      - chain
+                                # - title: phoneNumber
+                                #   type: object
+                                #   properties:
+                                #     phoneNumber:
+                                #       type: string
+                                #       description: Provide a phone number for this wallet to be associated with, including country code
+                                #       example: "+16465551234"
+                                #     chain:
+                                #       $ref: "#/components/schemas/AllChains"
+                                #   required:
+                                #     - phoneNumber
+                                #     - chain
+        get: # Get Wallets for User
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                example:
+                                    - chain: ethereum
+                                      publicKey: "0xB364346FDb52e42CcC186b3BA3730cb4A87bF5B0"
+                                    - chain: polygon
+                                      publicKey: "0x30E3E8feEc68d5Cb5424113E9d161611c7fc7290"
+                                    - chain: solana
+                                      publicKey: A9vzqFSxKVasf55GdZCAFKhKW9zckzx6ekhhsQTretTa
+                                items:
+                                    $ref: "#/components/schemas/Wallet"
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                401:
+                    description: |
+                        Unauthorized. The API key may not exist, or does not have the proper scopes to perform this action (`wallets.read`)
+            tags:
+                - Wallet
+            summary: Get Wallets for User
+            description: |
+                Fetch the addresses of a user's Crossmint custodial wallets
+
+                **API scope required**: `wallets.read`
+            operationId: fetch-wallet
+            parameters:
+                - name: userId
+                  description: Unique identifier for your user. Any arbitrary string can be passed here.
+                  in: query
+                  schema:
+                      type: string
+                - name: email
+                  description: The email used when creating the wallet
+                  in: query
+                  schema:
+                      type: string
+                # - name: phoneNumber
+                #   in: query
+                #   schema:
+                #     type: string
+    /2022-06-09/wallets/{identifier}/nfts:
+        get: # Get NFTs from Wallet
+            # Mintlify (our docs tool) doesn't support `oneOf` in the responses. These are overridden in the mdx file for this route
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/NFTEVM"
+                                    - $ref: "#/components/schemas/NFTSOL"
+                                    #- $ref: "#/components/schemas/NFTCAR"
+                400:
+                    description: "Bad request. Either the blockchain prefix is incorrect, the address does not exist, or the locator is malformed"
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+            tags:
+                - Wallet
+            summary: Get NFTs from Wallet
+            description: |
+                Fetch the NFTs in a provided wallet
+
+                **API scope required**: `wallets:nfts.read`
+            operationId: fetch-content-from-wallet
+            parameters:
+                - name: identifier
+                  in: path
+                  description: "The wallet identifier in the format of `<chain>:<address>`, `email:<email_address>:<chain>` or `userId:<userId>:<chain>`."
+                  required: true
+                  schema:
+                      type: string
+                - name: page
+                  in: query
+                  description: "Page index"
+                  required: true
+                  schema:
+                      type: string
+                      default: "1"
+                - name: perPage
+                  in: query
+                  description: "Number of items to display per page"
+                  required: true
+                  schema:
+                      type: string
+                      default: "20"
+    /v1-alpha1/wallets/{chain}:{address}/signMessage:
+        post: # Sign message
+            responses:
+                200:
+                    description: Message has been successfully signed
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    signedMessage:
+                                        type: string
+                                        description: "This is the result of `ethers.Signer.signMessage`"
+                                        example: 0x00000000...
+                400:
+                    description: The blockchain requested is not supported
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                404:
+                    description: The specified wallet is not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                401:
+                    description: |
+                        Unauthorized. The API key may not exist, or does not have the proper scopes to perform this action
+            tags:
+                - Sign
+            summary: Sign Message
+            description: |
+                Sign a message using a custodial wallet's key
+
+                **API scope required**: `wallets:messages.sign`
+            operationId: sign-message
+            parameters:
+                - name: chain
+                  in: path
+                  description: "The blockchain network you are using."
+                  required: true
+                  schema:
+                      $ref: "#/components/schemas/EVMChains"
+                - name: address
+                  in: path
+                  description: "The wallet address you want to sign the message with"
+                  required: true
+                  schema:
+                      type: string
+                      pattern: "^(0x)?[0-9a-fA-F]{40}$"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            required:
+                                - message
+                            properties:
+                                message:
+                                    type: string
+                                    description: "The message to be signed"
+    /v1-alpha1/wallets/transfer:
+        post:
+            responses:
+                # 200:
+                #   description: Export started. Status updates for this export are returned through the Exports Webhook.
+                202:
+                    description: Verification request sent to user. Status updates for this export are returned through the transfers webhook.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/VerificationRequestSent"
+                303:
+                    description: More info needed to start export. This will happen when the operation has a high fraud risk.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TransferPendingVerification"
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                401:
+                    description: |
+                        Unauthorized. The API key may not exist, or does not have the proper scopes to perform this action (`wallets:nfts.transfer`)
+                404:
+                    description: The specified wallet cannot be found.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+            tags:
+                - Transfer
+            summary: Transfer NFT (email)
+            description: |
+                Transfer NFTs from one wallet to another wallet. Intended for wallets created using `email` option.
+
+                **API scope required**: `wallets:nfts.transfer`
+            operationId: wallets-transfer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            oneOf:
+                                - title: EVM
+                                  type: object
+                                  properties:
+                                      chain:
+                                          $ref: "#/components/schemas/EVMChains"
+                                      from:
+                                          type: string
+                                          description: "The wallet address for the current owner"
+                                      to:
+                                          type: string
+                                          description: "The wallet address the token should be transferred to"
+                                      contractAddress:
+                                          type: string
+                                          description: "The contract address of the token to transfer"
+                                      tokenId:
+                                          type: string
+                                          description: "The numeric tokenId of the token to be transferred"
+                                      quantity:
+                                          type: string
+                                          description: "Required for ERC-1155 only, not relevant for ERC-721 tokens"
+                                - title: Solana
+                                  type: object
+                                  properties:
+                                      chain:
+                                          type: string
+                                          enum:
+                                              - solana
+                                          default: solana
+                                      from:
+                                          type: string
+                                          description: "The wallet address for the current owner"
+                                      to:
+                                          type: string
+                                          description: "The wallet address the token should be transferred to"
+                                      tokenMintAddress:
+                                          type: string
+                                          description: "The mintHash of the token to transfer"
+    /v1-alpha1/transfer:
+        post:
+            responses:
+                200:
+                    description: Export started. Status updates for this export are returned through the Exports Webhook.
+                303:
+                    description: More info needed to start export. This will happen when the operation has a high fraud risk.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TransferPendingVerification"
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                401:
+                    description: |
+                        Unauthorized. The API key may not exist, or does not have the proper scopes to perform this action (`wallets:nfts.transfer`)
+            tags:
+                - Transfer
+            summary: Transfer NFT (userId)
+            description: |
+                Transfer NFTs from one wallet to another wallet. Intended for wallets created with `userId` option.
+
+                **API scope required**: `wallets:nfts.transfer`
+            operationId: transfer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                chain:
+                                    $ref: "#/components/schemas/AllChains"
+                                tokenId:
+                                    type: string
+                                    description: "The numeric token ID of the NFT to be transferred, only used for EVM tokens"
+                                fromAddress:
+                                    type: string
+                                    description: "The wallet address for the current owner"
+                                toAddress:
+                                    type: string
+                                    description: "The wallet address to send the NFT to"
+                                tokenMintAddress:
+                                    type: string
+                                    description: |
+                                        **Solana**: mintHash
+
+                                        **EVM**: token contract address
+components:
+    securitySchemes:
+        apiKey:
+            type: apiKey
+            in: header
+            name: X-API-KEY
+            description: Obtained in the Crossmint developer console
+    schemas:
+        AllChains:
+            type: string
+            description: Specify the name of the blockchain
+            enum:
+                - arbitrum
+                - arbitrumnova
+                - arbitrum-sepolia
+                - base
+                - base-sepolia
+                - bsc
+                #- bsc-testnet
+                #- cardano
+                - ethereum
+                - ethereum-sepolia
+                - optimism
+                - optimism-sepolia
+                - polygon
+                - polygon-amoy
+                - skale-nebula
+                - skale-nebula-testnet
+                - solana
+                - zkyoto
+                - zora
+                - zora-sepolia
+            default: ethereum
+        EVMChains:
+            type: string
+            enum:
+                - arbitrum
+                - arbitrumnova
+                - arbitrum-sepolia
+                - base
+                - base-sepolia
+                - bsc
+                #- bsc-testnet
+                - ethereum
+                - ethereum-sepolia
+                - optimism
+                - optimism-sepolia
+                - polygon
+                - polygon-amoy
+                #- polygon-mumbai
+                - zkyoto
+                - zora
+                - zora-sepolia
+            default: ethereum
+        Checkout:
+            required:
+                - clientId
+            type: object
+            properties:
+                clientId:
+                    type: string
+                    description: "Your Crossmint developer collection ID, found in the developer console: https://www.crossmint.com/console/collections"
+                    example: 085f0f5a-9948-11ec-b909-0242ac120002
+                collection:
+                    $ref: "#/components/schemas/Collection"
+                redirect:
+                    $ref: "#/components/schemas/Redirect"
+                mintConfig:
+                    $ref: "#/components/schemas/MintConfig"
+                emailTo:
+                    type: string
+                    description: The email address for mint confirmation
+                    example: testy@crossmint.xyz
+                mintTo:
+                    type: string
+                    description: A wallet address to mint the NFT to
+                    example: YKQC3F2FUMexJUaje2suibPNhen2e9Pix1C2f9q7BHY
+                paymentMethod:
+                    type: string
+                    description: The payment method, either `"fiat"` or `"ETH"`
+                    default: fiat
+                whPassThroughArgs:
+                    type: object
+                    description: Any arguments to included in the webhook status updates
+                    example:
+                        referralCode: "123"
+                listingId:
+                    type: string
+                    description: The listing ID in a marketplace. Most contracts will not use this
+        Collection:
+            type: object
+            description: Information about your collection, to be displayed on the checkout page.
+            properties:
+                title:
+                    type: string
+                    description: The title of your collection
+                    example: A great collection
+                description:
+                    type: string
+                    description: A description for your collection
+                    example: This is a fantastic collection of NFTs
+                photo:
+                    type: string
+                    description: Full URL to an image for your collection.
+                    example: https://i.picsum.photos/id/542/200/300.jpg?hmac=qD8M4ejDPlEc69pGT21BzB7CDiWOcElb_Ke7V8POjm8
+        MintConfig:
+            type: object
+            description: Arguments sent to your smart contract
+            properties:
+                totalPrice:
+                    type: string
+                    example: "0.08"
+                "...":
+                    type: object
+                    description: Any custom arguments to your minting function should be configured here.
+        MintStatus:
+            type: object
+            properties:
+                status:
+                    type: string
+                    description: The latest status of the mint
+                    example: success
+                    enum:
+                        - minting
+                        - success
+                        - error
+                mintAddress:
+                    type: string
+                    description: The address of the mint
+                    example: B1nQxDxmQTfRbXK4Cv1HtEmXKNqTXHEDiD251p9RCR7Q
+                walletAddress:
+                    type: string
+                    description: The wallet address the NFT is minted to
+                    example: YKQC3F2FUMexJUaje2suibPNhen2e9Pix1C2f9q7BHY
+                passThroughArgs:
+                    type: string
+                    description: The arguments you sent via the `whPassThroughArgs` from `/checkout/mint`
+                    example: '{"referralCode":"123"}'
+        NFTEVM:
+            title: EVM
+            description: EVM
+            type: array
+            items:
+                type: object
+                properties:
+                    chain:
+                        type: string
+                        description: The blockchain used in the request.
+                    contractAddress:
+                        type: string
+                        description: The token contract address
+                    tokenId:
+                        type: string
+                        description: The numeric tokenId for the specified NFT
+                    metadata:
+                        type: object
+                        properties:
+                            attributes:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        trait_type:
+                                            type: string
+                                        value:
+                                            type: string
+                                        display_type:
+                                            type: string
+                                            nullable: true
+                            collection:
+                                type: object
+                            description:
+                                type: string
+                            image:
+                                type: string
+                                description: URL that represents the image for the NFT
+                            animation_url:
+                                type: string
+                                description: Optional URL representing a video or other multimedia file
+                                nullable: true
+                            name:
+                                type: string
+                    locator:
+                        type: string
+                        description: The address of the NFT on the blockchain
+                    tokenStandard:
+                        type: string
+                        description: The type of contract this token is from (ERC-721 or ERC-1155)
+        NFTSOL:
+            title: Solana
+            description: Solana
+            type: array
+            items:
+                type: object
+                properties:
+                    chain:
+                        type: string
+                        description: The blockchain used in the request, `solana` in this case.
+                    mintHash:
+                        type: string
+                        description: The unique identifier of this NFT on Solana
+                    metadata:
+                        type: object
+                        properties:
+                            name:
+                                type: string
+                            description:
+                                type: string
+                            image:
+                                type: string
+                                description: A URL that represents the image for the NFT
+                            attributes:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        value:
+                                            anyOf:
+                                                - type: string
+                                                - type: number
+                                                - type: boolean
+                                                - type: object
+                                        trait_type:
+                                            type: string
+                    locator:
+                        type: string
+                        description: The address of the NFT on the blockchain
+        NFTCAR:
+            title: Cardano
+            description: cardano
+            type: array
+            items:
+                type: object
+                properties:
+                    chain:
+                        type: string
+                        description: The blockchain used in the request, `cardano` in this case.
+                    assetId:
+                        type: string
+                        description: The unique identifier of this NFT on Cardano
+                    metadata:
+                        type: object
+                        properties:
+                            assetId:
+                                type: string
+                            name:
+                                type: string
+                            description:
+                                type: string
+                            image:
+                                type: string
+                                format: uri
+                            attributes:
+                                type: array
+                                items:
+                                    type: object
+                                    properties:
+                                        trait_type:
+                                            type: string
+                                        value:
+                                            type: string
+                    locator:
+                        type: string
+                        description: The address of the NFT on the blockchain
+        Redirect:
+            type: object
+            description: The URLs to redirect the user to upon comletion or cancellation of the checkout page.
+            properties:
+                continue:
+                    type: string
+                    description: The URL to redirect the customer to when the customer's payment information is accepted.
+                cancel:
+                    type: string
+                    description: The URL to redirect the customer cancels the payment.
+        Transfer:
+            type: object
+            required: [chain, fromAddress, toAddress, tokenMintAddress]
+            properties:
+                chain:
+                    type: string
+                    example: ethereum
+                tokenId:
+                    type: string
+                    description: The NFT token ID
+                fromAddress:
+                    type: string
+                    description: The wallet address for the current owner
+                toAddress:
+                    type: string
+                    description: The wallet address to send the NFT to
+                tokenMintAddress:
+                    type: string
+                    description: The NFT token mint address
+        Wallet:
+            type: object
+            properties:
+                chain:
+                    type: string
+                    example: solana
+                    description: The blockchain the wallet is on
+                publicKey:
+                    type: string
+                    example: C9vzqFSxKVasf55GdZCAFKhKW9zckzx6ekhhsQTretTa
+                    description: The public address of the wallet
+        CheckoutMintSuccess:
+            type: object
+            properties:
+                checkoutURL:
+                    type: string
+                    description: A URL to send the user to in order to capture payment and start the minting process
+        VerificationRequestSent:
+            type: object
+            properties:
+                message:
+                    type: string
+                    example: Verification request sent to user
+                    description: A message indicating the result.
+                actionId:
+                    type: string
+                    description: An ID that can be used to poll the [actions API](/api-reference/common/get-action-status).
+        TransferPendingVerification:
+            type: object
+            properties:
+                personaUrl:
+                    type: string
+                    description: A URL to send the user to in order to perform a persona verification. If the user has failed the OTP challenge 3 times, this will be the only option.
+        Error:
+            type: object
+            properties:
+                error:
+                    type: string
+    requestBodies:
+        Checkout:
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Checkout"
+            required: true
+        Transfer:
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Transfer"
+            required: true

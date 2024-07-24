@@ -20,15 +20,15 @@ paths:
       x-fern-sdk-method-name: edit-order
 components:
   schemas:
-    400Response:
+    Error400Response:
       x-fern-type-name: BadRequestResponse
-    403Response:
+    Error403Response:
       x-fern-type-name: UnauthorizedResponse
-    404Response:
+    Error404Response:
       x-fern-type-name: NotFoundResponse
-    503Response:
+    Error503Response:
       x-fern-type-name: ServiceUnavailabileResponse
-    524Response:
+    Error524Response:
       x-fern-type-name: TimeoutResponse
     LineItems: 
       oneOf: 

@@ -1,6 +1,3 @@
-api:
-  path: ./openapi/openapi.yaml
-  overrides: ./openapi/openapi-overrides.yml
 groups:
   ts-sdk:
     generators:
@@ -11,7 +8,7 @@ groups:
           package-name: "crossmint"
           token: ${NPM_TOKEN}
         github:
-          repository: fern-demo/crossmint-typescript-sdk          
+          repository: Paella-Labs/typescript-sdk   
         smart-casing: true
         config: 
           namespaceExport: Crossmint
