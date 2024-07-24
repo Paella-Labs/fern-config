@@ -2171,6 +2171,7 @@ components:
                             description: Supply limit. Set to 1 for ERC721.
                             example: 10
         Metadata:
+            x-fern-type-name: MintingMetadata
             type: object
             additionalProperties: false
             properties:

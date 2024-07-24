@@ -4,6 +4,8 @@ display-name: Crossmint
 error-discrimination:
   strategy: status-code
 
+auth: apiKey
+
 default-environment: Production
 environments:
   Production: "https://www.crossmint.com/api"

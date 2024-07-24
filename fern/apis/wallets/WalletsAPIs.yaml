@@ -539,6 +539,7 @@ components:
                     description: The arguments you sent via the `whPassThroughArgs` from `/checkout/mint`
                     example: '{"referralCode":"123"}'
         NFTEVM:
+            x-fern-type-name: NFTEVM
             title: EVM
             description: EVM
             type: array
@@ -589,6 +590,7 @@ components:
                         type: string
                         description: The type of contract this token is from (ERC-721 or ERC-1155)
         NFTSOL:
+            x-fern-type-name: NFTSolana
             title: Solana
             description: Solana
             type: array
