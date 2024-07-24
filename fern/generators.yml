@@ -11,8 +11,7 @@ groups:
           package-name: "crossmint"
           token: ${NPM_TOKEN}
         github:
-          repository: fern-demo/crossmint-typescript-sdk
-          mode: pull-request
+          repository: fern-demo/crossmint-typescript-sdk          
         smart-casing: true
         config: 
           namespaceExport: Crossmint
