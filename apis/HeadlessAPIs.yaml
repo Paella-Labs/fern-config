@@ -2,8 +2,10 @@ openapi: 3.0.1
 servers:
     - url: "https://staging.crossmint.com/api"
       description: "Staging environment (testnets)"
+      x-fern-server-name: Staging
     - url: "https://www.crossmint.com/api"
       description: "Production environment (mainnets)"
+      x-fern-server-name: Production
 info:
     description: |
         N/A
@@ -32,6 +34,7 @@ paths:
                 - apiKey: []
             tags:
                 - Headless
+            x-fern-sdk-group-name: checkout
             requestBody:
                 required: true
                 content:
@@ -63,31 +66,31 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/400Response"
+                                $ref: "#/components/schemas/Error400Response"
                 403:
                     description: Forbidden error, please ensure the credentials are correct.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/403Response"
+                                $ref: "#/components/schemas/Error403Response"
                 404:
                     description: Not found error.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/404Response"
+                                $ref: "#/components/schemas/Error404Response"
                 503:
                     description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/503Response"
+                                $ref: "#/components/schemas/Error503Response"
                 524:
                     description: A timeout occurred.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/524Response"
+                                $ref: "#/components/schemas/Error524Response"
 
     /2022-06-09/orders/{orderId}:
         # GET ORDER
@@ -97,9 +100,9 @@ paths:
             operationId: get-order
             security:
                 - apiKey: []
-                - orderClientSecret: []
             tags:
                 - Headless
+            x-fern-sdk-group-name: checkout
             parameters:
                 - $ref: "#/components/parameters/orderId"
             responses:
@@ -114,31 +117,31 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/400Response"
+                                $ref: "#/components/schemas/Error400Response"
                 403:
                     description: Forbidden error, please ensure the credentials are correct.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/403Response"
+                                $ref: "#/components/schemas/Error403Response"
                 404:
                     description: Not found error.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/404Response"
+                                $ref: "#/components/schemas/Error404Response"
                 503:
                     description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/503Response"
+                                $ref: "#/components/schemas/Error503Response"
                 524:
                     description: A timeout occurred.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/524Response"
+                                $ref: "#/components/schemas/Error524Response"
 
         # EDIT ORDER
         patch:
@@ -149,9 +152,9 @@ paths:
             operationId: edit-order
             security:
                 - apiKey: []
-                - orderClientSecret: []
             tags:
                 - Headless
+            x-fern-sdk-group-name: checkout
             parameters:
                 - $ref: "#/components/parameters/orderId"
             requestBody:
@@ -172,31 +175,31 @@ paths:
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/400Response"
+                                $ref: "#/components/schemas/Error400Response"
                 403:
                     description: Forbidden error, please ensure the credentials are correct.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/403Response"
+                                $ref: "#/components/schemas/Error403Response"
                 404:
                     description: Not found error.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/404Response"
+                                $ref: "#/components/schemas/Error404Response"
                 503:
                     description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/503Response"
+                                $ref: "#/components/schemas/Error503Response"
                 524:
                     description: A timeout occurred.
                     content:
                         application/json:
                             schema:
-                                $ref: "#/components/schemas/524Response"
+                                $ref: "#/components/schemas/Error524Response"
 
 components:
     securitySchemes:
@@ -293,6 +296,7 @@ components:
             oneOf:
                 - type: object
                   title: EVM
+                  x-fern-type-name: EvmPayment
                   additionalProperties: false
                   properties:
                       receiptEmail:
@@ -300,6 +304,7 @@ components:
                           format: email
                           description: Email that the receipt will be sent to.
                       method:
+                          x-fern-type-name: EvmPaymentMethods
                           type: string
                           enum:
                               - arbitrum-sepolia
@@ -311,6 +316,7 @@ components:
                               - ethereum
                               - optimism
                       currency:
+                          x-fern-type-name: EvmPaymentCurrency
                           type: string
                           enum:
                               - eth
@@ -327,6 +333,7 @@ components:
                       - currency
                 - type: object
                   title: Solana
+                  x-fern-type-name: SolanaPayment
                   additionalProperties: false
                   properties:
                       receiptEmail:
@@ -334,10 +341,12 @@ components:
                           format: email
                           description: Email that the receipt will be sent to.
                       method:
+                          x-fern-type-name: SolanaPaymentMethods
                           type: string
                           enum:
                               - solana
                       currency:
+                          x-fern-type-name: SolanaPaymentCurrency
                           type: string
                           enum:
                               - sol
@@ -354,6 +363,7 @@ components:
                       - currency
                 - type: object
                   title: Fiat
+                  x-fern-type-name: FiatPayment
                   additionalProperties: false
                   properties:
                       receiptEmail:
@@ -367,6 +377,7 @@ components:
                       currency:
                           default: usd
                           type: string
+                          x-fern-type-name: FiatPaymentCurrency    
                           enum:
                               - usd
                               - eur
@@ -383,6 +394,7 @@ components:
         LineItems:
             oneOf:
                 - type: object
+                  x-fern-type-name: SingleLineItem
                   title: Single Line Item
                   additionalProperties: false
                   properties:
@@ -408,6 +420,7 @@ components:
                       - collectionLocator
                 - type: array
                   title: Multiple Line Items
+                  x-fern-type-name: MultipleLineItems
                   items:
                       type: object
                       additionalProperties: false
@@ -583,7 +596,7 @@ components:
                                     type: string
                                     example: "0x02f90....."
 
-        400Response:
+        Error400Response:
             type: object
             properties:
                 error:
@@ -593,7 +606,7 @@ components:
                     type: string
                     example: "Invalid arguments or empty parameter <missing parameter>."
 
-        403Response:
+        Error403Response:
             type: object
             properties:
                 error:
@@ -603,7 +616,7 @@ components:
                     type: string
                     example: Malformed API key. / API key provided doesn't have required scopes.
 
-        404Response:
+        Error404Response:
             type: object
             properties:
                 error:
@@ -613,7 +626,7 @@ components:
                     type: string
                     example: "Not found"
 
-        503Response:
+        Error503Response:
             type: object
             properties:
                 error:
@@ -623,7 +636,8 @@ components:
                     type: string
                     example: "Please try again in a few minutes. If the issue still persists, contact Crossmint support."
 
-        524Response:
+        Error524Response:
+            x-fern-type-name: TimeoutResponse
             type: object
             properties:
                 error:

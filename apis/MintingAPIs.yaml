@@ -1,0 +1,2779 @@
+openapi: 3.0.1
+servers:
+    - url: "https://staging.crossmint.com/api"
+      description: "Staging environment (testnets)"
+      x-fern-server-name: Staging
+    - url: "https://www.crossmint.com/api"
+      description: "Production environment (mainnets)"
+      x-fern-server-name: Production
+security:
+    - apiKey: []
+info:
+    description: N/A
+    version: 1.0.0
+    title: NFT Minting
+    contact:
+        name: Crossmint NFT Minting APIs
+        url: https://www.crossmint.com
+        email: support@crossmint.io
+
+paths:
+    ################################################
+    ### MINTING
+    ################################################
+
+    /2022-06-09/collections/{collectionId}/nfts/:
+        # BATCH MINT NFTS
+        post:
+            summary: Batch Mint NFTs
+            description: |
+                Mint multiple NFTs with a single call and deliver them to a web3 wallet or an email address
+
+                **API scope required** `nfts.create`
+            operationId: batch-mint-nft
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                                - nfts
+                            properties:
+                                nfts:
+                                    type: array
+                                    description: Array of objects describing the NFTs to mint to recipients.
+                                    items:
+                                        additionalProperties: false
+                                        type: object
+                                        properties:
+                                            recipient:
+                                                $ref: "#/components/schemas/Recipient"
+                                            metadata:
+                                                $ref: "#/components/schemas/NFTMetadataOptions"
+                                            compressed:
+                                                $ref: "#/components/schemas/Compressed"
+                                            id:
+                                                type: string
+                                                description: "**Optional** The idempotent identifier for the NFT"
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BatchMintResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the API specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BatchError"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                503:
+                    description: |
+                        Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+
+    /2022-06-09/collections/{collectionId}/nfts:
+        # MINT NFT
+        post:
+            summary: Mint NFT
+            description: |
+                Mint your NFTs and deliver them to a web3 wallet or an email address
+
+                **API scope required**: `nfts.create`
+            operationId: mint-nft
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                                - recipient
+                            properties:
+                                recipient:
+                                    $ref: "#/components/schemas/Recipient"
+                                reuploadLinkedFiles:
+                                    $ref: "#/components/schemas/ReuploadLinkedFiles"
+                                compressed:
+                                    $ref: "#/components/schemas/Compressed"
+                            anyOf:
+                                - title: Metadata
+                                  type: object
+                                  required: [metadata]
+                                  properties:
+                                      metadata:
+                                          $ref: "#/components/schemas/NFTMetadataOptions"
+                                - title: Template Id
+                                  type: object
+                                  required: [templateId]
+                                  properties:
+                                      templateId:
+                                          type: string
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/MintResponseSolana200"
+                                    - $ref: "#/components/schemas/MintResponseEVM200"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # GET ALL NFTs
+        get:
+            summary: Get All NFTs
+            description: |
+                Get a list of all the NFTs in a given collection.
+
+                **API scope required**: `nfts.read`
+            operationId: mint-status-list
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/page"
+                - $ref: "#/components/parameters/perPage"
+            responses:
+                200:
+                    description: Success. Returns an array of objects describing the NFTs minted from this collection.
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/NFTObjectEVM"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    /2022-06-09/collections/{collectionId}/sfts:
+        # MINT SFT
+        post:
+            summary: Mint SFT
+            description: |
+                Mint your SFTs and deliver them to a web3 wallet or an email address
+
+                **API scope required**: `nfts.create`
+            operationId: mint-sft
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/idempotencyKeyHeader"
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                                - templateId
+                                - recipient
+                            properties:
+                                templateId:
+                                    type: string
+                                    description: Identifier of the template
+                                    example: silver-pass
+                                recipient:
+                                    $ref: "#/components/schemas/Recipient"
+                                amount:
+                                    type: integer
+                                    description: (Optional) Amount to mint
+                                    example: 10
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    actionId:
+                                        type: string
+                                        example: a91c15e3-60f2-4a45-bf1a-cee508981667
+                                    action:
+                                        type: string
+                                        example: nfts.create
+                                    status:
+                                        type: string
+                                        example: pending
+                                    data:
+                                        type: object
+                                        properties:
+                                            chain:
+                                                type: string
+                                                example: polygon
+                                            collection:
+                                                type: object
+                                                properties:
+                                                    id:
+                                                        type: string
+                                                        example: 84e3d617-9c1b-4e7a-9686-522a9ea7c520
+                                                    contractAddress:
+                                                        type: string
+                                                        example: 0x9b8ab8949bd7E73E61945b88F7fe12151f98ad3C
+                                            recipient:
+                                                type: object
+                                                properties:
+                                                    walletAddress:
+                                                        type: string
+                                                        example: 0xcFDc00Cf926A5053f9Cdf004e6DF17e6dEB2E146
+                                                    email:
+                                                        type: string
+                                                        example: testy@crossmint.io
+                                            token:
+                                                type: object
+                                                properties:
+                                                    id:
+                                                        type: string
+                                                        example: a91c15e3-60f2-4a45-bf1a-cee508981667
+                                    startedAt:
+                                        type: string
+                                        example: 2024-01-02T22:05:01.000Z
+                                    resource:
+                                        type: string
+                                        example: https://staging.crossmint.com/api/2022-06-09/actions/a91c15e3-60f2-4a45-bf1a-cee508981667
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    /2022-06-09/collections/{collectionId}/nfts/{id}:
+        # MINT STATUS
+        get:
+            summary: Mint Status
+            description: |
+                Get the status and associated information for a mint operation.
+
+                **API scope required**: `nfts.read`
+            operationId: mint-status
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/nftId"
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MintStatusSolana200"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # EDIT NFT
+        patch:
+            summary: Edit NFT
+            description: |
+                Edit a minted NFT's metadata on IPFS. 
+
+                If you are using a custom baseURI, invoking this will overwrite the specific tokenURI for the edited token.
+
+                **API scope required**: `nfts.update`
+            operationId: edit-nft
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/nftId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                                - recipient
+                                - metadata
+                            properties:
+                                metadata:
+                                    $ref: "#/components/schemas/NFTMetadataOptions"
+                                reuploadLinkedFiles:
+                                    $ref: "#/components/schemas/ReuploadLinkedFiles"
+            responses:
+                200:
+                    description: The NFT metadata update action has been successfully been created.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/EditNFTResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # MINT NFT IDEMPOTENT
+        put:
+            summary: Mint NFT with ID
+            description: |
+                This pathway allows you to mint NFTs and guarantee idempotency
+                to ensure you never double mint for the same NFT. 
+
+                **API scope required**: `nfts.create`
+            operationId: mint-nft-idempotent
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - name: id
+                  in: path
+                  description: Custom ID of the NFT, which is used as an idempotency key
+                  required: true
+                  example: default
+                  schema:
+                      type: string
+                      example: my-idempotency-key
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                recipient:
+                                    $ref: "#/components/schemas/Recipient"
+                                metadata:
+                                    $ref: "#/components/schemas/NFTMetadataOptions"
+                                reuploadLinkedFiles:
+                                    $ref: "#/components/schemas/ReuploadLinkedFiles"
+                                compressed:
+                                    $ref: "#/components/schemas/Compressed"
+                            required:
+                                - recipient
+                                - metadata
+            responses:
+                200:
+                    description: The request has been accepted.
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - $ref: "#/components/schemas/MintResponseSolana200"
+                                    - $ref: "#/components/schemas/MintResponseSolana200Subsequent"
+                                    - $ref: "#/components/schemas/MintResponseEVM200"
+                                    - $ref: "#/components/schemas/MintResponseEVM200Subsequent"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # BURN NFT
+        delete:
+            summary: Burn NFT
+            description: |
+                Burn a minted NFT.
+
+                **API scope required**: `nfts.delete`
+            operationId: burn-nft
+            tags:
+                - NFTs
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/nftId"
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BurnNFTResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    ################################################
+    ### NFT By Locator
+    ################################################
+
+    /v1-alpha1/nfts/{locator}:
+        # EDIT NFT BY LOCATOR
+        patch:
+            summary: Edit NFT by Locator
+            description: |
+                Edit a minted NFT's metadata using a Crossmint NFT locator.
+
+                **API scope required**: `nfts.update`
+            operationId: edit-nft-by-locator
+            tags:
+                - NFTs
+            parameters:
+                - name: locator
+                  in: path
+                  description: The locator of the NFT, which includes the blockchain, contract address, and token ID.
+                  required: true
+                  schema:
+                      type: string
+                      example: "polygon:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045:52"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                                - metadata
+                                - reuploadLinkedFiles
+                            properties:
+                                metadata:
+                                    $ref: "#/components/schemas/NFTMetadata"
+                                reuploadLinkedFiles:
+                                    $ref: "#/components/schemas/ReuploadLinkedFiles"
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/EditNFTResponse"
+                400:
+                    description: Invalid Locator or Collection Type
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: "The specified NFT locator is invalid. See the valid format on https://docs.crossmint.com/api-reference/."
+                403:
+                    description: Forbidden
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: "Couldn't find Crossmint managed NFT {locator}"
+                501:
+                    description: Not Implemented
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: "Currently, only EVM Locators are supported for this route."
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # BURN NFT
+        delete:
+            summary: Burn NFT by Locator
+            description: |
+                Burn a minted NFT using a Crossmint NFT locator.
+
+                **API scope required**: `nfts.delete`
+            operationId: burn-nft-by-locator
+            tags:
+                - NFTs
+            parameters:
+                - name: locator
+                  in: path
+                  description: The locator of the NFT, which includes the blockchain, contract address, and token ID.
+                  required: true
+                  schema:
+                      type: string
+                      example: "polygon:0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045:52"
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/BurnNFTResponse"
+                400:
+                    description: Invalid Locator or Collection Type
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: "The specified NFT locator is invalid. See the valid format on https://docs.crossmint.com/api-reference/."
+                403:
+                    description: Forbidden
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: "Couldn't find Crossmint managed NFT {locator}"
+                501:
+                    description: Not Implemented
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    error:
+                                        type: boolean
+                                        example: true
+                                    message:
+                                        type: string
+                                        example: "Currently, only EVM Locators are supported for this route."
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    ################################################
+    ### COLLECTIONS
+    ################################################
+
+    /2022-06-09/collections/:
+        # GET ALL COLLECTIONS
+        get:
+            summary: Get All Collections
+            description: |
+                List all collections created under the current Crossmint project
+
+                **API scope required**: `collections.read`
+            operationId: list-collections
+            tags:
+                - NFT Collections
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    results:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/GetCollectionResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # CREATE COLLECTION
+        post:
+            tags:
+                - NFT Collections
+            operationId: create-collection
+            summary: Create Collection
+            description: |
+                Create a collection that you can mint NFTs/SFTs from
+
+                **API scope required**: `collections.create`
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateCollectionBody"
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CreateCollectionResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    /2022-06-09/collections/{collectionId}:
+        # CREATE COLLECTION IDEMPOTENT
+        put:
+            summary: Create Collection with ID
+            description: |
+                Create a collection that you can mint NFTs/SFTs from. This API is idempotent, 
+                if you call it multiple times with the same ID, only one will be created.
+
+                **API scope required**: `collections.create`
+            operationId: create-collection-custom
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateCollectionBody"
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/CreateCollectionResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # UPDATE COLLECTION INFO
+        patch:
+            summary: Update Collection Info
+            description: |
+                Update the sales details of a collection
+
+                **API scope required**: `collections.update`
+            operationId: update-collection
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                supplyLimit:
+                                    type: number
+                                    description: "The maximum number of NFTs that can be minted for this collection"
+                                payments:
+                                    $ref: "#/components/schemas/PaymentsObject"
+            responses:
+                200:
+                    description: A JSON object containing transactionId and status
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/UpdateCollectionResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # GET COLLECTION INFO
+        get:
+            summary: Get Collection Info
+            description: |
+                Get information about a specific collection.
+
+                **API scope required**: `collections.read`
+            operationId: collection-info
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GetCollectionResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    "/v1-alpha1/minting/collections/{collectionId}/royalties":
+        # GET ROYALTIES CONFIG
+        get:
+            summary: Get Royalties Config
+            description: |
+                Fetch the royalty configuration for a collection, from its current state
+                in the blockchain. 
+
+                This API is only supported on EVM chains.
+
+                If you call GET too soon after PUT/DELETE,
+                you may not yet see your latest changes, as they can take a few seconds to
+                record on the blockchain.
+
+                **API scope required**: `collections.read`
+            operationId: get-royalty-information
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            responses:
+                200:
+                    description: Success.
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    recipients:
+                                        type: array
+                                        items:
+                                            type: object
+                                            properties:
+                                                address:
+                                                    type: string
+                                                    description: Recipient address. e.g., 0x71C...
+                                                    example: 0x71C...
+                                                basisPoints:
+                                                    type: integer
+                                                    description: |
+                                                        A basis point is a standard measure for percentages in finance. One basis point equals 1/100th of 1%, or 0.01%.
+                                                    example: 100
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # SET ROYALTIES
+        put:
+            summary: Set Royalties
+            description: |
+                Configure royalties for all NFTs in a collection.
+
+                This API is only supported for EVM chains and implements the EIP-2981 standard.
+
+                **API scope required**: `collections.update`
+            operationId: edit-royalty-information
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                recipients:
+                                    description: "List of royalty recipients. Note: EVM collections only support a single recipient. Use a contract splitter as recipient in order to send payments to multiple addresses."
+                                    type: array
+                                    items:
+                                        type: object
+                                        additionalProperties: false
+                                        properties:
+                                            address:
+                                                type: string
+                                                description: |
+                                                    Address where the payments will be received.
+                                                    Note: ENS addresses are not supported.
+                                                example: 0x71C...
+                                            basisPoints:
+                                                type: integer
+                                                description: |
+                                                    Percentage of the sale price that will go to the recipient address. A basis point is a  standard measure for percentages in finance. One basis point equals 1/100th of 1%, or 0.01%.
+                                                example: 100
+                            required:
+                                - basisPoints
+                                - recipient
+            responses:
+                204:
+                    description: No-content success response indicating that the request is being processed.
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                409:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MintAPIFeatureCollectionNotDeployed"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # REMOVE ROYALTIES
+        delete:
+            summary: Remove Royalties
+            description: |
+                Remove all royalties from a given collection. No new NFT sales will yield royalties to the creator. 
+
+                This API is only supported on EVM Chains.
+
+                **API scope required**: `collections.update`
+            operationId: disable-royalty-information
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            responses:
+                204:
+                    description: No-content success response indicating that the request is being processed.
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    "/v1-alpha1/minting/collections/{collectionId}/base-uri":
+        # GET BASE URI
+        get:
+            summary: Get Base URI
+            description: |
+                Get the Base URI of a collection as it appears on-chain.
+
+                **API scope required**: `collections.read`
+            operationId: get-base-uri
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            responses:
+                200:
+                    description: Base URI of a collection as it appears on-chain
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    uri:
+                                        type: string
+                400:
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                oneOf:
+                                    - title: OutdatedContract
+                                      type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Setting the base URI is not supported on contracts deployed before 06/09/2023
+                                    - title: OldCollection
+                                      type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Setting the base URI is not supported on contracts deployed before 06/09/2023
+                                    - title: SolanaNotSupported
+                                      type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Getting the base URI is not yet available on Solana
+                                    - title: ExternalCollection
+                                      type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Getting the base URI is not available on external collections
+                                    - title: SFTCollection
+                                      type: object
+                                      properties:
+                                          message:
+                                              type: string
+                                              example: Setting the base URI is not available on SFT collections
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # SET BASE URI
+        put:
+            summary: "Set Base URI"
+            description: |
+                Update the Base URI of a collection. Setting the baseURI enables
+                excluding the metadata param when minting. Tokens minted without the metadata
+                param will have a tokenURI of: 
+
+                `{BASE_URI}/{TOKEN_ID}`
+
+                This API is currently only supported on EVM Chains.
+
+                **API scope required**: `collections.update`
+            operationId: set-base-uri
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            properties:
+                                uri:
+                                    type: string
+                                    description: The new Base URI
+                                    example: https://www.example.com
+            responses:
+                204:
+                    description: |
+                        No-content success response indicating that the request is being processed
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                409:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MintAPIFeatureCollectionNotDeployed"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    /v1-alpha1/minting/collections/{collectionId}/transferable:
+        # GET TRANSFERABILITY STATUS
+        get:
+            summary: Get Transferability
+            description: |
+                Get the transferable status of a collection. 
+
+                This API is only supported on EVM chains. 
+
+                You must contact sales to gain access to this API. 
+
+                **API scope required**: `collections.read`
+            operationId: get-transferability
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    value:
+                                        type: boolean
+                                        example: true
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # SET TRANSFERABILITY STATUS
+        put:
+            summary: Set Transferability
+            description: |
+                Update the transferable status of a collection. 
+
+                This API is only supported on EVM chains. 
+                You must contact sales to gain access to this API. 
+
+                **API scope required**: `collections.update`
+            operationId: set-transferability
+            tags:
+                - NFT Collections
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            additionalProperties: false
+                            required:
+                                - value
+                            properties:
+                                value:
+                                    type: boolean
+                                    description: Toggles the transferability of NFTs within the collection. Set to `false` to disable transfers.
+                                    example: true
+            responses:
+                204:
+                    description: Success
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                409:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/MintAPIFeatureCollectionNotDeployed"
+                503:
+                    description: Service unavailable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    ################################################
+    ### TEMPLATES
+    ################################################
+
+    /2022-06-09/collections/{collectionId}/templates:
+        # GET ALL TEMPLATES
+        get:
+            summary: Get All Templates
+            description: |
+                Get all of the templates for a collection
+
+                **API scope required**: `nfts.read`
+            operationId: get-all-templates
+            tags:
+                - NFT Templates
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/page"
+                - $ref: "#/components/parameters/perPage"
+            responses:
+                200:
+                    description: success
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/TemplateResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Service unavailable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # CREATE TEMPLATE
+        post:
+            summary: Create Template
+            description: |
+                Create a token template, that NFTs or SFTs may be minted from
+
+                **API scope required**: `nfts.create`
+            operationId: create-template
+            tags:
+                - NFT Templates
+            parameters:
+                - name: collectionId
+                  in: path
+                  description: The ID of the named collection, used to create new tokens
+                  required: true
+                  schema:
+                      type: string
+                      example: idempotent-collection-name
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateTemplateBody"
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TemplateResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                409:
+                    description: Conflict
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/409Response"
+                424:
+                    description: Failed Dependency
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/424Response"
+                503:
+                    description: Service unavailable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    /2022-06-09/collections/{collectionId}/templates/{templateId}:
+        # GET TEMPLATE
+        get:
+            summary: Get Template
+            description: |
+                Fetch the contents of a token template.
+
+                **API scope required**: `nfts.read`
+            operationId: get-template
+            tags:
+                - NFT Templates
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/templateId"
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TemplateResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Service unavailable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # CREATE TEMPLATE IDEMPOTENT
+        put:
+            summary: Create Template with ID
+            description: |
+                Create a token template with preconfigured metadata
+
+                **API scope required**: `nfts.create`
+            operationId: create-template-idempotent
+            tags:
+                - NFT Templates
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/templateId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateTemplateBody"
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/TemplateResponse"
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                409:
+                    description: Conflict
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/409Response"
+                424:
+                    description: Failed Dependency
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/424Response"
+                503:
+                    description: Service unavailable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # EDIT TEMPLATE
+        patch:
+            summary: Edit Template
+            description: |
+                Edit a Token template.
+
+                **API scope required**: `nfts.update`
+            operationId: edit-template
+            tags:
+                - NFT Templates
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/templateId"
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            oneOf:
+                                - title: Metadata Update
+                                  $ref: "#/components/schemas/Metadata"
+                                - title: Supply Update
+                                  $ref: "#/components/schemas/Supply"
+            responses:
+                204:
+                    description: Success
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Service unavailable
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+        # DELETE TEMPLATE
+        delete:
+            summary: Delete Template
+            description: |
+                Delete a Token template.
+
+                **API scope required**: `nfts.delete`
+            operationId: delete-template
+            tags:
+                - NFT Templates
+            parameters:
+                - $ref: "#/components/parameters/collectionId"
+                - $ref: "#/components/parameters/templateId"
+            responses:
+                200:
+                    description: Success.
+                400:
+                    description: Invalid arguments, please make sure you're following the api specification.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error400Response"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                503:
+                    description: Please try again in a few minutes. If the issue still persists, contact Crossmint support.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error503Response"
+
+    ################################################
+    ### ACTIONS
+    ################################################
+
+    /2022-06-09/actions/{actionId}:
+        # GET ACTION STATUS
+        get:
+            summary: Get Action Status
+            description: |
+                Use this API to poll for the status of asynchonous actions such as NFT mints, transfers, etc.
+
+                **API scope required**: `nfts.create`
+            operationId: get-action-status
+            tags:
+                - Actions
+            parameters:
+                - name: actionId
+                  in: path
+                  description: The actionId.
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Success
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    actionId:
+                                        type: string
+                                        format: uuid
+                                        example: "66881a4d-eff9-467a-b19d-a2ff76eef5c2"
+                                    action:
+                                        type: string
+                                        example: "nfts.create"
+                                    status:
+                                        type: string
+                                        example: "pending"
+                                    data:
+                                        type: object
+                                        properties:
+                                            collection:
+                                                type: object
+                                                properties:
+                                                    id:
+                                                        type: string
+                                                        example: "someCollection"
+                                                    contractAddress:
+                                                        type: string
+                                                        example: "0x0B7c736cD6D517b6AFfB3F6151eC662B0000018B"
+                                            recipient:
+                                                type: object
+                                                properties:
+                                                    walletAddress:
+                                                        type: string
+                                                        example: "0x6Def4FF2Efe3731EB2Ca09c625d21bfd6da00000"
+                                            token:
+                                                type: object
+                                                properties:
+                                                    id:
+                                                        type: string
+                                                        example: "66881a4d-eff9-467a-b19d-a2ff76eef5c2"
+                                    startedAt:
+                                        type: string
+                                        format: date-time
+                                        example: "2023-10-02T22:10:41.000Z"
+                                    resource:
+                                        type: string
+                                        format: uri
+                                        example: "https://staging.crossmint.com/api/2022-06-09/actions/66881a4d-eff9-467a-b19d-a2ff76eef5c2"
+                403:
+                    description: Forbidden error, please ensure the credentials are correct.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error403Response"
+                404:
+                    description: Not found error.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error404Response"
+                524:
+                    description: A timeout occurred.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error524Response"
+
+################################################
+### COMPONENTS
+################################################
+
+components:
+    securitySchemes:
+        apiKey:
+            type: apiKey
+            in: header
+            name: X-API-KEY
+            description: Obtained in the Crossmint developer console
+
+    parameters:
+        collectionId:
+            name: collectionId
+            in: path
+            description: |
+                This is the identifier for the collection related to the request. Every project has default collections: `default-solana` and `default-polygon`. 
+
+                The [create-collection](/api-reference/minting/collection/create-collection) API will result in collections with UUID formatted `collectionId`. 
+                **Example:** `9c82ef99-617f-497d-9abb-fd355291681b`
+
+                The [create-collection-idempotent](/api-reference/minting/collection/create-collection-idempotent) API allows you to specify an arbitrary identifier during the intitial request.
+                **Example:** `your-custom-identifer`
+            required: true
+            example: default-solana
+            schema:
+                type: string
+
+        idempotencyKeyHeader:
+            name: x-idempotency-key
+            in: header
+            description: Unique identifier to prevent duplicate requests
+            schema:
+                type: string
+
+        templateId:
+            name: templateId
+            in: path
+            description: The template ID
+            required: true
+            schema:
+                type: string
+
+        nftId:
+            name: id
+            in: path
+            description: Unique ID of the minted NFT returned in the mint response
+            required: true
+            schema:
+                type: string
+
+        page:
+            name: page
+            in: query
+            description: The page number you want to query, starting at 1
+            required: true
+            example: 1
+            schema:
+                type: number
+
+        perPage:
+            name: perPage
+            in: query
+            description: How many items you want to be returned in the page.
+            schema:
+                type: number
+                example: 20
+
+    schemas:
+        ################################################
+        ### REQUEST OBJECTS
+        ################################################
+
+        Recipient:
+            type: string
+            example: email:testy@crossmint.io:polygon
+            description: |
+                Allowed formats: 
+
+                `<chain>:<address>` or 
+
+                `email:<email_address>:<chain>` or
+
+                `userId:<userId>:<chain>`
+
+                [see here for more info](/minting/advanced/specify-recipient)
+
+        ReuploadLinkedFiles:
+            type: boolean
+            description: "Any URLs in the metadata object will be resolved and reuploaded to IPFS [Default: true]"
+
+        Compressed:
+            type: boolean
+            description: |
+                **Solana only** Use NFT compression for cheaper mint costs [Default: true]
+
+        PaymentsObject:
+            type: object
+            additionalProperties: false
+            description: "Enable payments for this collection by setting `price`, `recipientAddress` and `currency`"
+            properties:
+                price:
+                    type: string
+                    description: "The price of the token in native currency for the selected chain"
+                recipientAddress:
+                    type: string
+                    description: "The wallet address to receive payouts"
+                currency:
+                    type: string
+                    description: "The currency for the price of the NFT. Defaults to the native currency of the chain"
+
+
+        NFTMetadataOptions:
+            description: "Optional if [baseURI](/api-reference/minting/collection/set-base-uri) is set."
+            oneOf:
+                - title: "[EVM] Metadata Object"
+                  $ref: "#/components/schemas/NFTMetadata"
+                - title: "[EVM] Metadata URL"
+                  description: Enter a URL to a JSON file containing the metadata contents
+                  type: string
+                  example: https://bafkreici2rl4k4kvnag6gjykuzaaqznveg7bip4y6qx4ekwzukqul23xba.ipfs.nftstorage.link/
+                - title: "[Solana] Metadata Object"
+                  $ref: "#/components/schemas/NFTMetadataSolana"
+                - title: "[Solana] Metadata URL"
+                  description: Enter a URL to a JSON file containing the metadata contents
+                  type: object
+                  additionalProperties: false
+                  properties:
+                      uri:
+                          description: Enter a URL to a JSON file containing the metadata contents
+                          type: string
+                          example: https://bafkreiccjhsemz4jhunfnrw4icx2vqr5ms4ycx5v3ecqvb2uckkgqf5ep4.ipfs.nftstorage.link/
+                      name:
+                          type: string
+                          description: "The name of your NFT (Max length: 32)"
+                          example: Solana Test NFT
+                          maxLength: 32
+                  required:
+                      - uri
+                      - name
+
+        NFTMetadata:
+            type: object
+            additionalProperties: false
+            required:
+                - name
+                - image
+                - description
+            properties:
+                name:
+                    type: string
+                    description: "The name of your NFT (Max length: 32)"
+                    example: Crossmint Example NFT
+                    maxLength: 32
+                image:
+                    type: string
+                    description: Direct link to your NFT image
+                    example: https://www.crossmint.com/assets/crossmint/logo.png
+                description:
+                    type: string
+                    description: "A brief description of the NFT (Max length: 64)"
+                    example: My NFT created via the mint API!
+                    maxLength: 64
+                animation_url:
+                    type: string
+                    example: ""
+                    description: |
+                        **EVM only**
+
+                        [See more info here](/minting/advanced/nft-metadata)
+                attributes:
+                    type: array
+                    description: "Add attributes to your NFT"
+                    items:
+                        type: object
+                        additionalProperties: false
+                        required:
+                            - trait_type
+                            - value
+                        properties:
+                            display_type:
+                                type: string
+                                description: Display name of your attribute
+                                enum:
+                                    - boost_number
+                                    - boost_percentage
+                                    - number
+                            trait_type:
+                                type: string
+                                description: The name of the trait
+                            value:
+                                type: string
+                                description: The value of the trait
+
+        NFTMetadataSolana:
+            type: object
+            additionalProperties: false
+            required:
+                - name
+                - image
+                - description
+            properties:
+                name:
+                    type: string
+                    description: "The name of your NFT (Max length: 32)"
+                    example: Crossmint Example NFT
+                    maxLength: 32
+                image:
+                    type: string
+                    description: Direct link to your NFT image
+                    example: https://www.crossmint.com/assets/crossmint/logo.png
+                description:
+                    type: string
+                    description: "A brief description of the NFT (Max length: 64)"
+                    example: My NFT created via the mint API!
+                    maxLength: 64
+                attributes:
+                    type: array
+                    description: "Add attributes to your NFT"
+                    items:
+                        type: object
+                        additionalProperties: false
+                        required:
+                            - trait_type
+                            - value
+                        properties:
+                            display_type:
+                                type: string
+                                description: Display name of your attribute
+                                enum:
+                                    - boost_number
+                                    - boost_percentage
+                                    - number
+                            trait_type:
+                                type: string
+                                description: The name of the trait
+                            value:
+                                type: string
+                                description: The value of the trait
+
+        CreateCollectionBody:
+            type: object
+            additionalProperties: false
+            properties:
+                chain:
+                    description: Blockchain you would like to use for this collection
+                    type: string
+                    enum:
+                        - aptos
+                        - arbitrum
+                        - arbitrum-sepolia
+                        - astar-zkevm
+                        - base
+                        - base-sepolia
+                        - bsc
+                        #- bsc-testnet
+                        - ethereum
+                        - ethereum-sepolia
+                        - optimism
+                        - optimism-sepolia
+                        - polygon
+                        - polygon-amoy
+                        - skale-nebula
+                        - skale-nebula-testnet
+                        - solana
+                        - zkyoto
+                        - zora
+                        - zora-sepolia
+                metadata:
+                    type: object
+                    additionalProperties: false
+                    required:
+                        - name
+                        - description
+                    properties:
+                        name:
+                            type: string
+                            description: "Collection name (Max length: 32)"
+                            example: Sample NFT Collection
+                            maxLength: 32
+                        imageUrl:
+                            type: string
+                            description: URL pointing to an image that represents the collection
+                            example: https://www.crossmint.com/assets/crossmint/logo.png
+                        description:
+                            type: string
+                            description: A description of the NFT collection
+                            example: This is a sample NFT collection
+                            maxLength: 64
+                        symbol:
+                            type: string
+                            description: "**EVM only** NFT collection symbol"
+                            example: XMINT
+                fungibility:
+                    description: Whether or not this collection is fungible. Only EVM collections may be set as semi-fungible
+                    type: string
+                    enum:
+                        - non-fungible
+                        - semi-fungible
+                    default: non-fungible
+                supplyLimit:
+                    type: number
+                    description: "The maximum number of tokens that can be minted for this collection"
+                payments:
+                    $ref: "#/components/schemas/PaymentsObject"
+                reuploadLinkedFiles:
+                    $ref: "#/components/schemas/ReuploadLinkedFiles"
+            required:
+                - chain
+                - metadata
+
+        CreateTemplateBody:
+            type: object
+            additionalProperties: false
+            properties:
+                metadata:
+                    description: See https://docs.crossmint.com/docs/metadata for more info
+                    type: object
+                    additionalProperties: false
+                    properties:
+                        name:
+                            type: string
+                            description: Template name
+                            default: My template
+                        image:
+                            type: string
+                            default: https://www.crossmint.com/assets/crossmint/logo.png
+                        description:
+                            type: string
+                            default: A new collection with its own dedicated smart contract
+                            maxLength: 64
+                onChain:
+                    type: object
+                    additionalProperties: false
+                    description: On-chain details
+                    properties:
+                        tokenId:
+                            type: string
+                            description: The token ID. Only relevant for SFT (ERC-1155) collections. Leave empty for NFT/ERC-721 collections.
+                            example: "1"
+                supply:
+                    type: object
+                    additionalProperties: false
+                    description: Supply details
+                    properties:
+                        limit:
+                            type: integer
+                            description: Supply limit, Set to 1 for ERC721.
+                            example: 10
+                reuploadLinkedFiles:
+                    $ref: "#/components/schemas/ReuploadLinkedFiles"
+
+        Supply:
+            type: object
+            additionalProperties: false
+            properties:
+                supply:
+                    type: object
+                    additionalProperties: false
+                    description: Supply details
+                    properties:
+                        limit:
+                            type: integer
+                            description: Supply limit. Set to 1 for ERC721.
+                            example: 10
+        Metadata:
+            x-fern-type-name: MintingMetadata
+            type: object
+            additionalProperties: false
+            properties:
+                name:
+                    type: string
+                    description: Template name
+                    default: My template
+                imageUrl:
+                    type: string
+                    default: https://www.crossmint.com/assets/crossmint/logo.png
+                description:
+                    type: string
+                    default: A new collection with its own dedicated smart contract
+                    maxLength: 64
+
+        ################################################
+        ### RESPONSE OBJECTS
+        ################################################
+
+        EditNFTResponse:
+            type: object
+            properties:
+                actionId:
+                    type: string
+                    example: "d5e24c69-530d-4efd-9201-e6f9d6f647e2"
+                action:
+                    type: string
+                    example: "nfts.update"
+                status:
+                    type: string
+                    example: "pending OR succeeded"
+                data:
+                    type: object
+                    properties:
+                        txId:
+                            type: string
+                            description: |
+                                The onchain transaction ID related to the request. 
+
+                                This is only present when `status` is `succeeded`
+                            example: "succeeded status ONLY - 0x69cf6d971e6745f25f683db9c87663839be02bdaa4a70f0724f490d7335b0081"
+                        chain:
+                            type: string
+                            example: "polygon"
+                        collection:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    example: "c242dcdb-57a7-4944-af9f-2c1472fa70fb"
+                                contractAddress:
+                                    type: string
+                                    example: "0xc0DeE392CBe1af5f8211A17EAffAA5c358C0fE6d"
+                        token:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    example: "27db27cf-1596-4ab0-9826-a6740ffce61a"
+                                owner:
+                                    type: object
+                                    properties:
+                                        walletAddress:
+                                            type: string
+                                            example: "0x0794f3aa4521d19273D775a08289110523D34DD4"
+                                tokenId:
+                                    type: string
+                                    example: "1"
+                        changes:
+                            type: array
+                            items:
+                                type: string
+                            example: ["metadata"]
+                startedAt:
+                    type: string
+                    format: date-time
+                    example: "2024-03-08T00:10:59.000Z"
+                completedAt:
+                    type: string
+                    format: date-time
+                    description: |
+                        The time this operation completed in UTC.
+
+                        This is only present when `status` is `succeeded`
+                    example: "succeeded status ONLY - 2024-03-08T00:11:01.000Z"
+                resource:
+                    type: string
+                    example: "https://staging.crossmint.com/api/2022-06-09/collections/c242dcdb-57a7-4944-af9f-2c1472fa70fb/nfts/d5e24c69-530d-4efd-9201-e6f9d6f647e2"
+
+        MintResponseSolana200:
+            type: object
+            properties:
+                id:
+                    type: string
+                onChain:
+                    type: object
+                    properties:
+                        status:
+                            type: string
+                        chain:
+                            type: string
+                actionId:
+                    type: string
+
+        MintResponseEVM200:
+            type: object
+            properties:
+                id:
+                    type: string
+                onChain:
+                    type: object
+                    properties:
+                        status:
+                            type: string
+                        chain:
+                            type: string
+                        contractAddress:
+                            type: string
+                actionId:
+                    type: string
+
+        MintResponseSolana200Subsequent:
+            allOf:
+                - $ref: "#/components/schemas/NFTObjectSolana"
+                - type: object
+                  properties:
+                      actionId:
+                          type: string
+                          description: actionId for the request
+
+        MintStatusSolana200:
+            allOf:
+                - $ref: "#/components/schemas/NFTObjectSolana"
+                - type: object
+                  properties:
+                      action:
+                          type: string
+                          description: URL to API endpoint for requesting status
+                          example: https://staging.crossmint.com/api/2022-06-09/actions/<actionId>
+
+        NFTObjectSolana:
+            type: object
+            properties:
+                id:
+                    type: string
+                metadata:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        symbol:
+                            type: string
+                        seller_fee_basis_points:
+                            type: integer
+                            example: 0
+                        properties:
+                            type: object
+                            properties:
+                                files:
+                                    type: array
+                                    items:
+                                        type: object
+                                        properties:
+                                            uri:
+                                                type: string
+                                            type:
+                                                type: string
+                                category:
+                                    type: string
+                                creators:
+                                    type: array
+                                    items:
+                                        type: object
+                                        properties:
+                                            address:
+                                                type: string
+                                            verified:
+                                                type: boolean
+                                            share:
+                                                type: integer
+                        description:
+                            type: string
+                        image:
+                            type: string
+                        attributes:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    trait_type:
+                                        type: string
+                                    value:
+                                        type: string
+                onChain:
+                    type: object
+                    properties:
+                        status:
+                            type: string
+                            example: success
+                        mintHash:
+                            type: string
+                        txId:
+                            type: string
+                        owner:
+                            type: string
+                        chain:
+                            type: string
+                            example: solana
+
+        MintResponseEVM200Subsequent:
+            allOf:
+                - $ref: "#/components/schemas/NFTObjectEVM"
+                - type: object
+                  properties:
+                      actionId:
+                          type: string
+                          description: actionId for the request
+
+        NFTObjectEVM:
+            type: object
+            properties:
+                id:
+                    type: string
+                metadata:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                        image:
+                            type: string
+                        description:
+                            type: string
+                onChain:
+                    type: object
+                    properties:
+                        status:
+                            type: string
+                        tokenId:
+                            type: string
+                        owner:
+                            type: string
+                        txId:
+                            type: string
+                        contractAddress:
+                            type: string
+                        chain:
+                            type: string
+
+        CreateCollectionResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                    example: "5263650e-6d43-4ed3-9e31-0cf593d076a4"
+                metadata:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                            example: "Test Collection"
+                        description:
+                            type: string
+                            example: "Test"
+                        imageUrl:
+                            type: string
+                            example: "https://cdn.io/metadata.json"
+                        symbol:
+                            type: string
+                            example: "XMINT"
+                fungibility:
+                    type: string
+                    example: "semi-fungible"
+                onChain:
+                    type: object
+                    properties:
+                        chain:
+                            type: string
+                            example: "polygon"
+                        type:
+                            type: string
+                            example: "erc-1155"
+                actionId:
+                    type: string
+                    example: "5263650e-6d43-4ed3-9e31-0cf593d076a4"
+
+        GetCollectionResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                    example: "bb691876-edb3-404c-af3e-c019b8e2ed2c"
+                metadata:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                            example: "Test Collection"
+                        description:
+                            type: string
+                            example: "Test"
+                        imageUrl:
+                            type: string
+                            example: "ipfs://QmVocoiYXZLAtheEHV3VF8w4pa68bkPutT8cQZdMrrpzxh"
+                        symbol:
+                            type: string
+                            example: "XMINT"
+                fungibility:
+                    type: string
+                    example: "non-fungible"
+                onChain:
+                    type: object
+                    properties:
+                        chain:
+                            type: string
+                            example: "polygon"
+                        type:
+                            type: string
+                            example: "erc-721"
+                        contractAddress:
+                            type: string
+                            example: "0x9564bD85f3D5677D86244dDb06F06bbD22D9d0DB"
+                supplyLimit:
+                    type: integer
+                    example: 95
+                payments:
+                    type: object
+                    properties:
+                        price:
+                            type: string
+                            example: "0.001"
+                        recipientAddress:
+                            type: string
+                            example: "0x6C3b3225759Cbda68F96378A9F0277B4374f9F06"
+
+        UpdateCollectionResponse:
+            type: object
+            properties:
+                actionId:
+                    type: string
+                    example: "e9abb61c-9371-447e-af1a-86fb5c073754"
+                action:
+                    type: string
+                    example: "collections.update"
+                status:
+                    type: string
+                    example: "pending"
+                data:
+                    type: object
+                    properties:
+                        chain:
+                            type: string
+                            example: "arbitrum"
+                        collection:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    example: "42c43e55-f92d-4b25-bc99-d8309b6e1f38"
+                                contractAddress:
+                                    type: string
+                                    example: "0x45ba91BCa91fA0D384022d3C279866811795FcF7"
+                        changes:
+                            type: array
+                            items:
+                                type: string
+                            example: "supplyLimit"
+                startedAt:
+                    type: string
+                    format: date-time
+                    example: "2023-12-30T00:06:56.000Z"
+                resource:
+                    type: string
+                    example: "https://staging.crossmint.com/api/2022-06-09/collections/<collectionId>"
+
+        BurnNFTResponse:
+            type: object
+            properties:
+                actionId:
+                    type: string
+                    description: |
+                        Can be used to check the status via the [action status API](/api-reference/common/get-action-status)
+                    example: "201520fc-e0eb-4698-a2f3-c6b50cc7c894"
+                action:
+                    type: string
+                    description: The action performed, in this case `nfts.delete`
+                    example: "nfts.delete"
+                status:
+                    type: string
+                    description: Current status of the async operation. One of `pending` or `succeeded`
+                    example: "pending OR succeeded"
+                data:
+                    type: object
+                    properties:
+                        chain:
+                            type: string
+                            description: Refer to the [supported chains](/introduction/supported-chains) page for more info
+                            example: "polygon"
+                        txId:
+                            type: string
+                            description: |
+                                The onchain transaction ID related to the request. 
+
+                                This is only present when `status` is `succeeded`
+                            example: "succeeded status ONLY - 0x69cf6d971e6745f25f683db9c87663839be02bdaa4a70f0724f490d7335b0081"
+                        collection:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    description: The Crossmint identifier for the collection. Either a UUID or custom string depending on how you create the collection.
+                                    example: "default-polygon"
+                                contractAddress:
+                                    type: string
+                                    description: The on-chain contract address for the given collection.
+                                    example: "0x67a602CBb306b3DBaaC7ECf55b72EED0E04Dc785"
+                        token:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                    description: The Crossmint identifier for the NFT. This will be a UUID.
+                                    example: "799a6f68-e2ea-4126-8577-4298dfcf900c"
+                                tokenId:
+                                    type: string
+                                    description: The numeric tokenId of the NFT in the contract.
+                                    example: "7"
+                startedAt:
+                    type: string
+                    format: date-time
+                    description: The time this operation was initiated in UTC.
+                    example: "2024-01-10T23:01:45.000Z"
+                completedAt:
+                    type: string
+                    format: date-time
+                    description: |
+                        The time this operation completed in UTC.
+
+                        This is only present when `status` is `succeeded`
+                    example: "succeeded status ONLY - 2024-01-10T23:02:00.000Z"
+                resource:
+                    type: string
+                    description: The URL path to obtain current status with [action status api](/api-reference/common/get-action-status)
+                    example: "https://staging.crossmint.com/api/2022-06-09/collections/default-polygon/nfts/201520fc-e0eb-4698-a2f3-c6b50cc7c894"
+
+        TemplateResponse:
+            type: object
+            properties:
+                templateId:
+                    type: string
+                    format: uuid
+                    example: "20ed0963-0185-49af-b4a0-2de3169bb367"
+                metadata:
+                    type: object
+                    properties:
+                        name:
+                            type: string
+                            example: My Token
+                        image:
+                            type: string
+                            example: https://cdn.io/image.png
+                        description:
+                            type: string
+                            example: Sample Token Template
+                onChain:
+                    type: object
+                    properties:
+                        tokenId:
+                            type: integer
+                            example: 1
+                supply:
+                    type: object
+                    properties:
+                        limit:
+                            type: integer
+                            example: 1
+                        minted:
+                            type: integer
+                            example: 0
+
+        BatchMintResponse:
+            type: object
+            properties:
+                results:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/MintResponseEVM200"
+            required:
+                - results
+
+        Error400Response:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: "Invalid arguments or empty parameter <missing parameter>."
+
+        Error403Response:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: Malformed API key. / API key provided doesn't have required scopes.
+
+        Error404Response:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: "Not found"
+
+        409Response:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: "Already exists"
+
+        424Response:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: "Couldn't fetch metadata from the URI defined on the template: <metadata url>. Ensure this URI is available and publicly accessible."
+
+        Error503Response:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: "Please try again in a few minutes. If the issue still persists, contact Crossmint support."
+
+        Error524Response:
+            x-fern-type-name: TimeoutResponse
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: "A timeout occurred."
+
+        MintAPIFeatureCollectionNotDeployed:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                    example: true
+                message:
+                    type: string
+                    example: "Collection <id> is not yet deployed. Please try again in a moment."
+
+        Error:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                message:
+                    type: string
+
+        ValidationError:
+            type: object
+            properties:
+                index:
+                    type: integer
+                    description: The index of the NFT that caused the validation error.
+                id:
+                    type: string
+                    description: The idempotent identifier for the NFT, if available.
+                message:
+                    type: string
+                    description: The validation error message.
+
+        BatchError:
+            type: object
+            properties:
+                error:
+                    type: boolean
+                message:
+                    type: string
+                validationErrors:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ValidationError"
+                    description: A list of specific validation errors.
