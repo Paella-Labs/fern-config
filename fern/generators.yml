@@ -16,7 +16,6 @@ groups:
           # token: ${NPM_TOKEN}
         github:
           repository: Paella-Labs/typescript-sdk   
-          mode: pull-request
         smart-casing: true
         config: 
           namespaceExport: Crossmint
