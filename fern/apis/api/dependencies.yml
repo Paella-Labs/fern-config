@@ -1,8 +1,0 @@
-dependencies: 
-  admin: ../admin
-  headless: ../headless
-  minting: ../minting
-  payments: ../payments
-  verifiable-credentials: ../verifiable-credentials
-  wallets: ../wallets
-  

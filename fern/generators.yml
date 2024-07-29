@@ -1,14 +1,22 @@
+api: 
+  - ../apis/AdminAPIs.yaml
+  - ../apis/HeadlessAPIs.yaml
+  - ../apis/MintingAPIs.yaml
+  - ../apis/PaymentsAPIs.yaml
+  - ../apis/VerifiableCredentialsAPIs.yaml
+  - ../apis/WalletsAPIs.yaml
 groups:
   ts-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.35.0
+        version: 0.36.4
         output:
           location: npm
           package-name: "crossmint"
-          token: ${NPM_TOKEN}
+          # token: ${NPM_TOKEN}
         github:
           repository: Paella-Labs/typescript-sdk   
+          mode: pull-request
         smart-casing: true
         config: 
           namespaceExport: Crossmint

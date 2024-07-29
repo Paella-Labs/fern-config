@@ -2,8 +2,10 @@ openapi: 3.0.1
 servers:
     - url: "https://staging.crossmint.com/api"
       description: "Staging environment (testnets)"
+      x-fern-server-name: Staging
     - url: "https://www.crossmint.com/api"
       description: "Production environment (mainnets)"
+      x-fern-server-name: Production
 security:
     - apiKey: []
 info:
@@ -301,6 +303,7 @@ paths:
                                 $ref: "#/components/schemas/Error"
             tags:
                 - Transfer
+            x-fern-sdk-method-name: wallets
             summary: Transfer NFT (email)
             description: |
                 Transfer NFTs from one wallet to another wallet. Intended for wallets created using `email` option.
@@ -313,6 +316,7 @@ paths:
                         schema:
                             oneOf:
                                 - title: EVM
+                                  x-fern-type-name: EvmTransfer
                                   type: object
                                   properties:
                                       chain:
@@ -371,6 +375,7 @@ paths:
                         Unauthorized. The API key may not exist, or does not have the proper scopes to perform this action (`wallets:nfts.transfer`)
             tags:
                 - Transfer
+            x-fern-sdk-method-name: NFT
             summary: Transfer NFT (userId)
             description: |
                 Transfer NFTs from one wallet to another wallet. Intended for wallets created with `userId` option.
@@ -677,6 +682,7 @@ components:
                     type: string
                     description: The URL to redirect the customer cancels the payment.
         Transfer:
+            x-fern-type-name: WalletsTransfer
             type: object
             required: [chain, fromAddress, toAddress, tokenMintAddress]
             properties:

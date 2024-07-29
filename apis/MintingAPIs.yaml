@@ -2,8 +2,10 @@ openapi: 3.0.1
 servers:
     - url: "https://staging.crossmint.com/api"
       description: "Staging environment (testnets)"
+      x-fern-server-name: Staging
     - url: "https://www.crossmint.com/api"
       description: "Production environment (mainnets)"
+      x-fern-server-name: Production
 security:
     - apiKey: []
 info:

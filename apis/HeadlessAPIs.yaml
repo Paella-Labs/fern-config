@@ -2,8 +2,10 @@ openapi: 3.0.1
 servers:
     - url: "https://staging.crossmint.com/api"
       description: "Staging environment (testnets)"
+      x-fern-server-name: Staging
     - url: "https://www.crossmint.com/api"
       description: "Production environment (mainnets)"
+      x-fern-server-name: Production
 info:
     description: |
         N/A
@@ -32,6 +34,7 @@ paths:
                 - apiKey: []
             tags:
                 - Headless
+            x-fern-sdk-group-name: checkout
             requestBody:
                 required: true
                 content:
@@ -100,6 +103,7 @@ paths:
                 - orderClientSecret: []
             tags:
                 - Headless
+            x-fern-sdk-group-name: checkout
             parameters:
                 - $ref: "#/components/parameters/orderId"
             responses:
@@ -152,6 +156,7 @@ paths:
                 - orderClientSecret: []
             tags:
                 - Headless
+            x-fern-sdk-group-name: checkout
             parameters:
                 - $ref: "#/components/parameters/orderId"
             requestBody:
@@ -297,6 +302,7 @@ components:
             oneOf:
                 - type: object
                   title: EVM
+                  x-fern-type-name: EvmPayment
                   additionalProperties: false
                   properties:
                       receiptEmail:
@@ -304,6 +310,7 @@ components:
                           format: email
                           description: Email that the receipt will be sent to.
                       method:
+                          x-fern-type-name: EvmPaymentMethods
                           type: string
                           enum:
                               - arbitrum-sepolia
@@ -315,6 +322,7 @@ components:
                               - ethereum
                               - optimism
                       currency:
+                          x-fern-type-name: EvmPaymentCurrency
                           type: string
                           enum:
                               - eth
@@ -331,6 +339,7 @@ components:
                       - currency
                 - type: object
                   title: Solana
+                  x-fern-type-name: SolanaPayment
                   additionalProperties: false
                   properties:
                       receiptEmail:
@@ -338,10 +347,12 @@ components:
                           format: email
                           description: Email that the receipt will be sent to.
                       method:
+                          x-fern-type-name: SolanaPaymentMethods
                           type: string
                           enum:
                               - solana
                       currency:
+                          x-fern-type-name: SolanaPaymentCurrency
                           type: string
                           enum:
                               - sol
@@ -358,6 +369,7 @@ components:
                       - currency
                 - type: object
                   title: Fiat
+                  x-fern-type-name: FiatPayment
                   additionalProperties: false
                   properties:
                       receiptEmail:
@@ -371,6 +383,7 @@ components:
                       currency:
                           default: usd
                           type: string
+                          x-fern-type-name: FiatPaymentCurrency    
                           enum:
                               - usd
                               - eur
@@ -387,6 +400,7 @@ components:
         LineItems:
             oneOf:
                 - type: object
+                  x-fern-type-name: SingleLineItem
                   title: Single Line Item
                   additionalProperties: false
                   properties:
@@ -412,6 +426,7 @@ components:
                       - collectionLocator
                 - type: array
                   title: Multiple Line Items
+                  x-fern-type-name: MultipleLineItems
                   items:
                       type: object
                       additionalProperties: false

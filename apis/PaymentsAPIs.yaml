@@ -2,8 +2,10 @@ openapi: 3.0.1
 servers:
     - url: "https://staging.crossmint.com/api"
       description: "Staging environment (testnets)"
+      x-fern-server-name: Staging
     - url: "https://www.crossmint.com/api"
       description: "Production environment (mainnets)"
+      x-fern-server-name: Production
 info:
     description: |
         N/A
@@ -528,6 +530,7 @@ components:
                     type: string
                     description: The URL to redirect the customer cancels the payment.
         Transfer:
+            x-fern-type-name: PaymentsTransfer
             type: object
             required: [chain, fromAddress, toAddress, tokenMintAddress]
             properties:
