@@ -324,7 +324,7 @@ paths:
                 **This API is subject to change as it is currently in its alpha form.**
             operationId: quote
             security:
-                - clientId: []
+                - apiKey: []
             parameters:
                 - name: nativePrice
                   in: query
@@ -361,10 +361,6 @@ components:
             type: apiKey
             name: X-API-KEY
             in: header
-        clientId:
-            type: apiKey
-            in: header
-            name: X-CLIENT-ID
     schemas:
         QuoteResponse:
             type: object

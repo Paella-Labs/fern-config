@@ -100,7 +100,6 @@ paths:
             operationId: get-order
             security:
                 - apiKey: []
-                - orderClientSecret: []
             tags:
                 - Headless
             x-fern-sdk-group-name: checkout
@@ -153,7 +152,6 @@ paths:
             operationId: edit-order
             security:
                 - apiKey: []
-                - orderClientSecret: []
             tags:
                 - Headless
             x-fern-sdk-group-name: checkout
@@ -208,10 +206,6 @@ components:
         apiKey:
             type: apiKey
             name: X-API-KEY
-            in: header
-        orderClientSecret:
-            type: apiKey
-            name: Authorization
             in: header
 
     parameters:
