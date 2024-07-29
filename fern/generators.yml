@@ -13,7 +13,7 @@ groups:
         output:
           location: npm
           package-name: "crossmint"
-          # token: ${NPM_TOKEN}
+          token: ${NPM_TOKEN}
         github:
           repository: Paella-Labs/typescript-sdk   
         smart-casing: true
