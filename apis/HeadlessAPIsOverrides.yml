@@ -1,0 +1,4 @@
+paths: 
+  /2022-06-09/orders/{orderId}:
+    patch:
+      security: null

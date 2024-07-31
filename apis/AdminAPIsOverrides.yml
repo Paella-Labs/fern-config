@@ -1,0 +1,12 @@
+components:
+  securitySchemes:
+    apiKey:
+      x-fern-header:
+        name: apiKey
+        env: CROSSMINT_API_KEY
+        type: optional<string>
+x-fern-global-headers:
+  - header: Authorization
+    name: clientSecret
+    type: optional<string>
+    env: CROSSMINT_CLIENT_SECRET
