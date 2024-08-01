@@ -1,6 +1,8 @@
 api: 
-  - ../apis/AdminAPIs.yaml
-  - ../apis/HeadlessAPIs.yaml
+  - path: ../apis/AdminAPIs.yaml
+    overrides: ../apis/AdminAPIsOverrides.yml
+  - path: ../apis/HeadlessAPIs.yaml
+    overrides: ../apis/HeadlessAPIsOverrides.yml
   - ../apis/MintingAPIs.yaml
   - ../apis/PaymentsAPIs.yaml
   - ../apis/VerifiableCredentialsAPIs.yaml
@@ -9,7 +11,7 @@ groups:
   ts-sdk:
     generators:
       - name: fernapi/fern-typescript-node-sdk
-        version: 0.36.4
+        version: 0.36.6
         output:
           location: npm
           package-name: "crossmint"
