@@ -14,7 +14,7 @@ groups:
         version: 0.36.6
         output:
           location: npm
-          package-name: "crossmint"
+          package-name: "@crossmint/autogen-sdk-ts"
           token: ${NPM_TOKEN}
         github:
           repository: Crossmint/autogen-sdk-ts
