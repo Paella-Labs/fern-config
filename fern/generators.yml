@@ -17,7 +17,7 @@ groups:
           package-name: "crossmint"
           token: ${NPM_TOKEN}
         github:
-          repository: Paella-Labs/typescript-sdk   
+          repository: Crossmint/autogen-sdk-ts
         smart-casing: true
         config: 
           namespaceExport: Crossmint
